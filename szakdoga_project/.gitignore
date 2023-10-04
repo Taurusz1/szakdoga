@@ -26,7 +26,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
-
+.next.config.js
+szakdoga_project/next.config.js
 # vercel
 .vercel
 
