@@ -17,10 +17,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const result = await octokit.request(`GET /repos/{owner}/{repo}/issues`, {
+  const result = await octokit.rest.issues.listForRepo({
+    mediaType: {
+      format: "raw",
+    },
     owner: publicRuntimeConfig.GIT_USER,
     repo: publicRuntimeConfig.GIT_REPO,
   });
-  console.log(result);
-  res.status(200).json({ name: 'John Doe' })
+
+  result.data.map((d) =>{console.log(d)});
+  res.status(200).json({name: "Jhon"});
 }
