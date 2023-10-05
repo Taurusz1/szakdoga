@@ -17,14 +17,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const result = await octokit.rest.issues.listForRepo({
+  const result = await octokit.rest.dependencyGraph.exportSbom({
     mediaType: {
       format: "raw",
     },
-    owner: publicRuntimeConfig.GIT_USER,
-    repo: publicRuntimeConfig.GIT_REPO,
+    owner: "kubernetes",
+    repo: "Kubernetes",
   });
+  const packageNames = result.data.sbom.packages.map((p)=>{return p.name;});
+  console.log(packageNames);
+  const sortedPackageNames = packageNames.sort();
+  console.log(sortedPackageNames);
 
-  result.data.map((d) =>{console.log(d)});
   res.status(200).json({name: "Jhon"});
 }
