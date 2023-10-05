@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Octokit } from "octokit";
 import getConfig from "next/config";
+import SBOM from '@/models/sbom';
 const { publicRuntimeConfig } = getConfig();
 
 
@@ -9,13 +10,9 @@ const octokit = new Octokit({
     auth: publicRuntimeConfig.GIT_ACCESS_TOKEN
   });
 
-type Data = {
-  name: string
-}
-
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<SBOM>
 ) {
   const result = await octokit.rest.dependencyGraph.exportSbom({
     mediaType: {
@@ -24,10 +21,15 @@ export default async function handler(
     owner: "kubernetes",
     repo: "Kubernetes",
   });
-  const packageNames = result.data.sbom.packages.map((p)=>{return p.name;});
-  console.log(packageNames);
-  const sortedPackageNames = packageNames.sort();
-  console.log(sortedPackageNames);
 
-  res.status(200).json({name: "Jhon"});
+  const responseData: SBOM = {
+    status: 200,
+    url: 'https://api.github.com/repos/kubernetes/Kubernetes/dependency-graph/sbom',
+    headers: result.headers.toString(),
+    data: {
+      sbom: result.data.sbom,
+    },
+  };
+
+  res.status(200).json(responseData);
 }
