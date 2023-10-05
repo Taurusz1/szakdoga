@@ -3,18 +3,25 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import { useEffect, useState } from 'react'
 import getConfig from 'next/config'
+import sbomQueryResult from '@/models/sbomQueryResult'
+import sbom from '@/models/sbom'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const { publicRuntimeConfig } = getConfig();
-  const [data, setData] = useState();
+  const [result, setResult] = useState<sbomQueryResult>();
+  const [sbom, setSBOM] = useState<sbom>();
+  const [packageNames, setPackageNames] = useState<String[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
         try {
-          const resData = await fetch(publicRuntimeConfig.API_ENDPOINT + "/kubernetes");
-           const dataSBOM = await resData.json();
-          setData(dataSBOM);
+          const resSBOM = await fetch(publicRuntimeConfig.API_ENDPOINT + "/kubernetes");
+           const dataSBOM = await resSBOM.json();
+           setResult(dataSBOM);
+           setSBOM(result?.data.sbom);
+           //const packageNames = result?.data.sbom.packages.map((p)=>{return p.name;});
         } catch (error) {
           console.error("Error fetching data:", error);
         }
@@ -23,8 +30,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-
-  
   return (
     <>
       <Head>
