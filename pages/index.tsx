@@ -1,34 +1,68 @@
-import Head from 'next/head'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-import { useEffect, useState } from 'react'
-import getConfig from 'next/config'
-import sbomQueryResult from '@/models/sbomQueryResult'
-import sbom from '@/models/sbom'
+import Head from "next/head";
+import { Inter } from "next/font/google";
+import styles from "@/styles/Home.module.css";
+import { useEffect, useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import getConfig from "next/config";
+import sbomQueryResult from "@/models/sbomQueryResult";
+import sbom from "@/models/sbom";
+import sbomPackage from "@/models/package";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const { publicRuntimeConfig } = getConfig();
+  const [pressed, handlers] = useDisclosure(false);
   const [result, setResult] = useState<sbomQueryResult>();
   const [sbom, setSBOM] = useState<sbom>();
   const [packageNames, setPackageNames] = useState<String[]>([]);
+  const [githubPackageNames, setGithubPackageNames] = useState<String[]>([]);
+  const [splitGithubPackageNames, setSplitGithubPackageNames] = useState<
+    String[][]
+  >([]);
+  const [otherPackageNames, setOtherPackageNames] = useState<String[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-        try {
-          const resSBOM = await fetch(publicRuntimeConfig.API_ENDPOINT + "/kubernetes");
-           const dataSBOM = await resSBOM.json();
-           setResult(dataSBOM);
-           setSBOM(result?.data.sbom);
-           //const packageNames = result?.data.sbom.packages.map((p)=>{return p.name;});
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        }
+      try {
+        const resSBOM = await fetch(
+          publicRuntimeConfig.API_ENDPOINT + "/kubernetes"
+        );
+        const dataSBOM = await resSBOM.json();
+        setResult(dataSBOM);
+        setSBOM(dataSBOM.data.sbom);
+        setPackageNames(
+          dataSBOM.data.sbom.packages?.map((p: sbomPackage) => p.name!).sort()
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     };
 
     fetchData();
   }, []);
+
+  const handleOnClick = () => {
+    const githubLinks = packageNames.filter((str) =>
+      str.startsWith("go:github.com")
+    );
+    const nonGithubLinks = packageNames.filter(
+      (str) => !str.startsWith("go:github.com")
+    );
+    const splitGithubLinks = githubLinks.map((g) => formatGithubLinks(g));
+
+    setGithubPackageNames(githubLinks);
+    setSplitGithubPackageNames(splitGithubLinks);
+    setOtherPackageNames(nonGithubLinks);
+    handlers.open();
+  };
+
+  const formatGithubLinks = (link: String) => {
+    // Splits the string and only keeps the account and repo name
+    const [account, repo] = link.split("/").splice(1, 2);
+    const uniqueParts = [...new Set([account, repo])];
+    return uniqueParts;
+  };
 
   return (
     <>
@@ -39,7 +73,20 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
+        <button onClick={handleOnClick}>Press Me</button>
+        <div>
+          {!pressed &&
+            packageNames &&
+            packageNames.length > 0 &&
+            packageNames.map((p, id) => <div key={id}>{p}</div>)}
+        </div>
+        <div>
+          {pressed &&
+            splitGithubPackageNames &&
+            splitGithubPackageNames.length > 0 &&
+            splitGithubPackageNames.map((p) => <div>{p}</div>)}
+        </div>
       </main>
     </>
-  )
+  );
 }
