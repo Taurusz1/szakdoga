@@ -18,9 +18,9 @@ export default async function handler(
   const result = await queryData("kubernetes", "Kubernetes");
   const packageData = filterSbom(result);
   packageData.map((p) => {
-    return await queryData(p[0], p[1]);
+    return queryData(p[0], p[1]);
   });
-
+  console.log(packageData[0]);
   const responseData: sbomQueryResult = {
     status: 200,
     url: "https://api.github.com/repos/kubernetes/Kubernetes/dependency-graph/sbom",
