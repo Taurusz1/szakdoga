@@ -9,7 +9,6 @@ type sbom = {
   documentDescribes: string[];
   documentNamespace: string;
   packages: sbomPackage[];
-}
-
+};
 
 export default sbom;
