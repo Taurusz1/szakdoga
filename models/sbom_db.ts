@@ -27,6 +27,6 @@ const sbomSchema = new Schema({
   packages: [sbomPackageSchema],
 });
 
-const SBOMModel = mongoose.model("SBOM", sbomSchema);
+const SBOMModel = mongoose.models.SBOM || mongoose.model("SBOM", sbomSchema);
 
 export default SBOMModel;

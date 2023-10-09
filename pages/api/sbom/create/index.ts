@@ -3,18 +3,14 @@ import SBOMModel from "@/models/sbom_db";
 import connectDB from "@/utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 
-connectDB();
+const connect = async () => {
+  connectDB();
+};
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  if (req.method === "GET") {
-    try {
-      const sboms = await SBOMModel.find({});
-      res.json(sboms);
-    } catch (error) {
-      console.error("Error retrieving sboms:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  } else if (req.method === "POST") {
+  await connect();
+
+  if (req.method === "POST") {
     const {
       SPDXID,
       spdxVersion,

@@ -22,29 +22,26 @@ export default function Home() {
   >([]);
   const [otherPackageNames, setOtherPackageNames] = useState<String[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resSBOM = await fetch(
-          publicRuntimeConfig.API_ENDPOINT + "/kubernetes"
-        );
-        const dataSBOM = await resSBOM.json();
-        setResult(dataSBOM);
-        setSBOM(dataSBOM.data.sbom);
-        setPackageNames(
-          dataSBOM.data.sbom.packages?.map((p: sbomPackage) => p.name!).sort()
-        );
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  useEffect(() => {}, [sbom]);
 
-    fetchData();
-  }, []);
+  const DownloadKubernetesSBOMFromGithub = async () => {
+    try {
+      const resSBOM = await fetch(
+        publicRuntimeConfig.API_ENDPOINT + "/kubernetes"
+      );
+      const dataSBOM = await resSBOM.json();
+      setResult(dataSBOM);
+      setSBOM(dataSBOM.data.sbom);
+      //setPackageNames(
+      //  dataSBOM.data.sbom.packages?.map((p: sbomPackage) => p.name!).sort()
+      //);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+    handlers.open();
+  };
 
-  const handleOnClick = async () => {
-    const dataObject = sbom;
-    console.log(dataObject);
+  const UploadKubernetesSBOMToMongoDB = async () => {
     const uploadresult = await fetch(
       publicRuntimeConfig.API_ENDPOINT + "/sbom/create",
       {
@@ -52,9 +49,20 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataObject),
+        body: JSON.stringify(sbom),
       }
     );
+    handlers.open();
+  };
+
+  const DownloadSBOMFromMongoDB = async () => {
+    const uploadresult = await fetch(
+      publicRuntimeConfig.API_ENDPOINT +
+        "/sbom/" +
+        publicRuntimeConfig.KUBERNETES_SBOM_ID
+    );
+    const data = await uploadresult.json();
+    setSBOM(data);
     handlers.open();
   };
 
@@ -74,19 +82,15 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <button onClick={handleOnClick}>Press Me</button>
-        <div>
-          {!pressed &&
-            packageNames &&
-            packageNames.length > 0 &&
-            packageNames.map((p, id) => <div key={id}>{p}</div>)}
-        </div>
-        <div>
-          {pressed &&
-            splitGithubPackageNames &&
-            splitGithubPackageNames.length > 0 &&
-            splitGithubPackageNames.map((p) => <div>{p}</div>)}
-        </div>
+        <button onClick={DownloadKubernetesSBOMFromGithub}>
+          Download Kubernetes SBOM from Github
+        </button>
+        <button onClick={UploadKubernetesSBOMToMongoDB}>
+          Upload Kubernetes SBOM to MongoDB
+        </button>
+        <button onClick={DownloadSBOMFromMongoDB}>
+          Download Kuberenetes SBOM from MongoDB
+        </button>
       </main>
     </>
   );

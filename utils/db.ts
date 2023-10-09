@@ -3,10 +3,13 @@ import getConfig from "next/config";
 
 const connectDB = async () => {
   const { publicRuntimeConfig } = getConfig();
-
   try {
-    await mongoose.connect(publicRuntimeConfig.MONGOURI);
-    console.log("MongoDB connected");
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(publicRuntimeConfig.MONGOURI);
+      console.log("MongoDB connected");
+    } else {
+      console.log("MongoDB is already connected");
+    }
   } catch (err) {
     console.error("MongoDB connection failed:", err);
     process.exit(1);

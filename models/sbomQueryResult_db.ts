@@ -11,9 +11,8 @@ const sbomQueryResultSchema = new Schema({
   },
 });
 
-const SBOMQueryResultModel = mongoose.model(
-  "SBOMQueryResult",
-  sbomQueryResultSchema
-);
+const SBOMQueryResultModel =
+  mongoose.models.SBOMQueryResult ||
+  mongoose.model("SBOMQueryResult", sbomQueryResultSchema);
 
 export default SBOMQueryResultModel;

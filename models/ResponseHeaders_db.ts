@@ -20,9 +20,8 @@ const responseHeadersSchema = new Schema({
   "x-ratelimit-reset": { type: String },
 });
 
-const ResponseHeadersModel = mongoose.model(
-  "ResponseHeaders",
-  responseHeadersSchema
-);
+const ResponseHeadersModel =
+  mongoose.models.ResponseHeaders ||
+  mongoose.model("ResponseHeaders", responseHeadersSchema);
 
 export default ResponseHeadersModel;

@@ -10,6 +10,8 @@ const sbomPackageSchema = new Schema({
   externalRefs: { type: [Object] },
 });
 
-const SBOMPackageModel = mongoose.model("SBOMPackage", sbomPackageSchema);
+const SBOMPackageModel =
+  mongoose.models.SBOMPackage ||
+  mongoose.model("SBOMPackage", sbomPackageSchema);
 
 export default SBOMPackageModel;
