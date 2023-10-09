@@ -1,5 +1,6 @@
-import ISBOM from "@/models/ISBOM";
+import sbom from "@/models/sbom";
 import SBOMModel from "@/models/sbom_db";
+import connectDB from "@/utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 
 connectDB();
@@ -7,7 +8,6 @@ connectDB();
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "GET") {
     try {
-      // Retrieve sboms from MongoDB
       const sboms = await SBOMModel.find({});
       res.json(sboms);
     } catch (error) {
@@ -15,7 +15,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(500).json({ error: "Internal Server Error" });
     }
   } else if (req.method === "POST") {
-    // Create a new sbom
     const {
       SPDXID,
       spdxVersion,
@@ -27,7 +26,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       packages,
     } = req.body;
 
-    const sbomData: ISBOM = {
+    const sbomData: sbom = {
       SPDXID,
       spdxVersion,
       creationInfo,
@@ -37,7 +36,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       documentNamespace,
       packages,
     };
-
     try {
       const sbom = new SBOMModel(sbomData);
       await sbom.save();

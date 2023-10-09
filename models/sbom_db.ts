@@ -6,6 +6,16 @@ const creationInfoSchema = new Schema({
   creators: { type: [String], required: true },
 });
 
+const sbomPackageSchema = new Schema({
+  SPDXID: { type: String },
+  name: { type: String },
+  versionInfo: { type: String },
+  downloadLocation: { type: String },
+  filesAnalyzed: { type: Boolean },
+  supplier: { type: String },
+  externalRefs: { type: [Object] },
+});
+
 const sbomSchema = new Schema({
   SPDXID: String,
   spdxVersion: String,
@@ -14,7 +24,7 @@ const sbomSchema = new Schema({
   dataLicense: String,
   documentDescribes: [String],
   documentNamespace: String,
-  packages: [SBOMPackageModel],
+  packages: [sbomPackageSchema],
 });
 
 const SBOMModel = mongoose.model("SBOM", sbomSchema);

@@ -42,18 +42,19 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const handleOnClick = () => {
-    const githubLinks = packageNames.filter((str) =>
-      str.startsWith("go:github.com")
+  const handleOnClick = async () => {
+    const dataObject = sbom;
+    console.log(dataObject);
+    const uploadresult = await fetch(
+      publicRuntimeConfig.API_ENDPOINT + "/sbom/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataObject),
+      }
     );
-    const nonGithubLinks = packageNames.filter(
-      (str) => !str.startsWith("go:github.com")
-    );
-    const splitGithubLinks = githubLinks.map((g) => formatGithubLinks(g));
-
-    setGithubPackageNames(githubLinks);
-    setSplitGithubPackageNames(splitGithubLinks);
-    setOtherPackageNames(nonGithubLinks);
     handlers.open();
   };
 
