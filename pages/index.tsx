@@ -15,32 +15,37 @@ export default function Home() {
   const [pressed, handlers] = useDisclosure(false);
   const [result, setResult] = useState<sbomQueryResult>();
   const [sbom, setSBOM] = useState<sbom>();
-  const [packageNames, setPackageNames] = useState<String[]>([]);
-  const [githubPackageNames, setGithubPackageNames] = useState<String[]>([]);
-  const [splitGithubPackageNames, setSplitGithubPackageNames] = useState<
-    String[][]
-  >([]);
-  const [otherPackageNames, setOtherPackageNames] = useState<String[]>([]);
+  const [packageNames, setPackageNames] = useState<String[][]>([]);
+  const [returnedPackageNames, setReturnedPackageNames] = useState<String[][]>(
+    []
+  );
 
   useEffect(() => {}, [sbom]);
 
   const DownloadKubernetesSBOMFromGithub = async () => {
     try {
+      const dataObject = {
+        owner: "kubernetes",
+        repo: "Kubernetes",
+      };
       const resSBOM = await fetch(
-        publicRuntimeConfig.API_ENDPOINT + "/kubernetes"
+        publicRuntimeConfig.API_ENDPOINT + "/sbom/github",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataObject),
+        }
       );
       const dataSBOM = await resSBOM.json();
       setResult(dataSBOM);
       setSBOM(dataSBOM.data.sbom);
-      //setPackageNames(
-      //  dataSBOM.data.sbom.packages?.map((p: sbomPackage) => p.name!).sort()
-      //);
+      console.log("Download From Github: Success");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-    handlers.open();
   };
-
   const UploadKubernetesSBOMToMongoDB = async () => {
     const uploadresult = await fetch(
       publicRuntimeConfig.API_ENDPOINT + "/sbom/create",
@@ -52,9 +57,8 @@ export default function Home() {
         body: JSON.stringify(sbom),
       }
     );
-    handlers.open();
+    console.log("Upload to DB: Success");
   };
-
   const DownloadSBOMFromMongoDB = async () => {
     const uploadresult = await fetch(
       publicRuntimeConfig.API_ENDPOINT +
@@ -63,16 +67,66 @@ export default function Home() {
     );
     const data = await uploadresult.json();
     setSBOM(data);
-    handlers.open();
+    console.log("Download From DB: Success");
+  };
+  const FilterSbom = () => {
+    if (!sbom) {
+      return;
+    }
+
+    const packageNames = sbom.packages?.map((p: sbomPackage) => p.name!).sort();
+    const githubLinks = packageNames.filter((str) =>
+      str.startsWith("go:github.com")
+    );
+    const nonGithubLinks = packageNames.filter(
+      (str) => !str.startsWith("go:github.com")
+    );
+    const splitGithubLinks = githubLinks.map((g) => {
+      // Splits the string and only keeps the account and repo name
+      const [account, repo] = g.split("/").splice(1, 2);
+      const uniqueParts = [...new Set([account, repo])];
+      return uniqueParts;
+    });
+    setPackageNames(splitGithubLinks);
+    console.log("Filtering: Success");
+  };
+  const UploadPackageNamesToMongoDB = async () => {
+    const uploadresult = await fetch(
+      publicRuntimeConfig.API_ENDPOINT + "/package/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(packageNames),
+      }
+    );
+    console.log("Upload to DB: Success");
   };
 
-  const formatGithubLinks = (link: String) => {
-    // Splits the string and only keeps the account and repo name
-    const [account, repo] = link.split("/").splice(1, 2);
-    const uniqueParts = [...new Set([account, repo])];
-    return uniqueParts;
+  const DownloadPackageNamesFromMongoDB = async () => {
+    const uploadresult = await fetch(
+      publicRuntimeConfig.API_ENDPOINT + "/package/"
+    );
+    const data = await uploadresult.json();
+    console.log(data);
+    setReturnedPackageNames(data);
+    console.log("Download From DB: Success");
   };
 
+  const DownLoadlayerOneSBOMS = async () => {
+    try {
+      const resSBOM = await fetch(
+        publicRuntimeConfig.API_ENDPOINT + "/sbom/github"
+      );
+      const dataSBOM = await resSBOM.json();
+      setResult(dataSBOM);
+      setSBOM(dataSBOM.data.sbom);
+      console.log("Download From Github: Success");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
   return (
     <>
       <Head>
@@ -82,14 +136,24 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <button onClick={DownloadKubernetesSBOMFromGithub}>
-          Download Kubernetes SBOM from Github
-        </button>
-        <button onClick={UploadKubernetesSBOMToMongoDB}>
-          Upload Kubernetes SBOM to MongoDB
-        </button>
-        <button onClick={DownloadSBOMFromMongoDB}>
-          Download Kuberenetes SBOM from MongoDB
+        <div>
+          <p>Already Done</p>
+          <button onClick={DownloadKubernetesSBOMFromGithub}>
+            Download Kubernetes SBOM from Github
+          </button>
+          <button onClick={UploadKubernetesSBOMToMongoDB}>
+            Upload Kubernetes SBOM to MongoDB
+          </button>
+          <button onClick={DownloadSBOMFromMongoDB}>
+            Download Kuberenetes SBOM from MongoDB
+          </button>
+          <button onClick={FilterSbom}>Sort and Format Package Names</button>
+          <button onClick={UploadPackageNamesToMongoDB}>
+            Upload Package Names to MongoDB
+          </button>
+        </div>
+        <button onClick={DownloadPackageNamesFromMongoDB}>
+          Download Package Names from MongoDB
         </button>
       </main>
     </>
