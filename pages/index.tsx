@@ -7,6 +7,7 @@ import getConfig from "next/config";
 import sbomQueryResult from "@/models/sbomQueryResult";
 import sbom from "@/models/sbom";
 import sbomPackage from "@/models/package";
+import packageNamesArray from "@/models/package_names";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,10 +24,22 @@ export default function Home() {
   useEffect(() => {}, [sbom]);
 
   const DownloadKubernetesSBOMFromGithub = async () => {
+    const owner = "kubernetes";
+    const repo = "Kubernetes";
+    const sbom = await DownloadSBOMFromGithub(owner, repo);
+    setSBOM(sbom);
+  };
+  const UploadKubernetesSBOMToMongoDB = async () => {
+    const owner = "kubernetes";
+    const repo = "Kubernetes";
+    await UploadSBOMToMongoDB(sbom!);
+  };
+
+  const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
     try {
       const dataObject = {
-        owner: "kubernetes",
-        repo: "Kubernetes",
+        owner: owner,
+        repo: repo,
       };
       const resSBOM = await fetch(
         publicRuntimeConfig.API_ENDPOINT + "/sbom/github",
@@ -39,14 +52,13 @@ export default function Home() {
         }
       );
       const dataSBOM = await resSBOM.json();
-      setResult(dataSBOM);
-      setSBOM(dataSBOM.data.sbom);
+      return dataSBOM;
       console.log("Download From Github: Success");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
-  const UploadKubernetesSBOMToMongoDB = async () => {
+  const UploadSBOMToMongoDB = async (sbom: sbom) => {
     const uploadresult = await fetch(
       publicRuntimeConfig.API_ENDPOINT + "/sbom/create",
       {
@@ -109,24 +121,33 @@ export default function Home() {
       publicRuntimeConfig.API_ENDPOINT + "/package/"
     );
     const data = await uploadresult.json();
-    console.log(data);
     setReturnedPackageNames(data);
     console.log("Download From DB: Success");
   };
 
   const DownLoadlayerOneSBOMS = async () => {
+    /*try {
+      returnedPackageNames?.map(async (rp) => {
+        const sbom = await DownloadSBOMFromGithub(rp[0], rp[1]);
+        await UploadSBOMToMongoDB(sbom);
+      });
+      console.log("Upload To MongoDB: Success");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }*/
+
     try {
-      const resSBOM = await fetch(
-        publicRuntimeConfig.API_ENDPOINT + "/sbom/github"
+      const sbom = await DownloadSBOMFromGithub(
+        returnedPackageNames[0][0],
+        returnedPackageNames[0][1]
       );
-      const dataSBOM = await resSBOM.json();
-      setResult(dataSBOM);
-      setSBOM(dataSBOM.data.sbom);
-      console.log("Download From Github: Success");
+      await UploadSBOMToMongoDB(sbom);
+      console.log("Upload To MongoDB: Success");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
   return (
     <>
       <Head>
@@ -154,6 +175,12 @@ export default function Home() {
         </div>
         <button onClick={DownloadPackageNamesFromMongoDB}>
           Download Package Names from MongoDB
+        </button>
+        <button onClick={DownloadPackageNamesFromMongoDB}>
+          Download Package Names from MongoDB
+        </button>
+        <button onClick={DownLoadlayerOneSBOMS}>
+          Download Layer One SBOMs From Github
         </button>
       </main>
     </>

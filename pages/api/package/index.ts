@@ -15,8 +15,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       if (!package_names) {
         return res.status(404).json({ error: "SBOM not found" });
       }
-      const packages = splitArrayIntoChunks(package_names, 100);
-      res.json(packages);
+      res.json(package_names[0].packageNames);
     } catch (error) {
       console.error("Error retrieving SBOM:", error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -25,12 +24,3 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(405).json({ error: "Method Not Allowed" });
   }
 };
-
-function splitArrayIntoChunks(array: packageNamesArray[], chunkSize: number) {
-  const result = [];
-  for (let i = 0; i < array.length; i += chunkSize) {
-    const chunk = array.slice(i, i + chunkSize);
-    result.push(chunk);
-  }
-  return result;
-}
