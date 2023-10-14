@@ -16,16 +16,19 @@ const sbomPackageSchema = new Schema({
   externalRefs: { type: [Object] },
 });
 
-const sbomSchema = new Schema({
-  SPDXID: String,
-  spdxVersion: String,
-  creationInfo: creationInfoSchema,
-  name: String,
-  dataLicense: String,
-  documentDescribes: [String],
-  documentNamespace: String,
-  packages: [sbomPackageSchema],
-});
+const sbomSchema = new Schema(
+  {
+    SPDXID: String,
+    spdxVersion: String,
+    creationInfo: creationInfoSchema,
+    name: String,
+    dataLicense: String,
+    documentDescribes: [String],
+    documentNamespace: String,
+    packages: [sbomPackageSchema],
+  },
+  { collection: "LayerOneSBOMS" }
+);
 
 const SBOMModel = mongoose.models.SBOM || mongoose.model("SBOM", sbomSchema);
 
