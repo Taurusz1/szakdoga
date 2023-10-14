@@ -16,7 +16,6 @@ const UploadSBOMToMongoDB = async (sbom: sbom) => {
     },
     body: JSON.stringify(sbom),
   });
-  console.log("Upload to DB: Success");
 };
 
 export default UploadSBOMToMongoDB;

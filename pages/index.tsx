@@ -2,19 +2,18 @@ import Head from "next/head";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
-import { useDisclosure } from "@mantine/hooks";
 import getConfig from "next/config";
 import sbomQueryResult from "@/models/sbomQueryResult";
 import sbom from "@/models/sbom";
 import sbomPackage from "@/models/package";
-import DownloadSBOMFromGithub from "@/utils/DownloadSBOMQueryResultFromGithub";
 import UploadSBOMToMongoDB from "@/utils/UploadSBOMToMongDB";
+import DownloadSBOMFromGithub from "@/utils/DownloadSBOMFromGithub";
+import FilterSbom from "@/utils/FilterSBOM";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const { publicRuntimeConfig } = getConfig();
-  const [pressed, handlers] = useDisclosure(false);
   const [result, setResult] = useState<sbomQueryResult>();
   const [sbom, setSBOM] = useState<sbom>();
   const [packageNames, setPackageNames] = useState<String[][]>([]);
@@ -24,8 +23,8 @@ export default function Home() {
   const DownloadKubernetesSBOMFromGithub = async () => {
     const owner = "kubernetes";
     const repo = "Kubernetes";
-    const sbomQueryResult = await DownloadSBOMFromGithub(owner, repo);
-    setSBOM(sbomQueryResult.data.sbom);
+    const sbom = await DownloadSBOMFromGithub(owner, repo);
+    setSBOM(sbom);
   };
   const UploadKubernetesSBOMToMongoDB = async () => {
     await UploadSBOMToMongoDB(sbom!);
@@ -38,9 +37,7 @@ export default function Home() {
     const sbom = await DownloadSBOMFromGithub(owner, repo);
 
     // Filter Github Links
-    const packageNames = sbom.data.sbom.packages
-      ?.map((p: sbomPackage) => p.name!)
-      .sort();
+    const packageNames = sbom.packages?.map((p: sbomPackage) => p.name!).sort();
     const githubLinks: string[] = packageNames.filter((str: string) =>
       str.startsWith("go:github.com")
     );
@@ -67,41 +64,18 @@ export default function Home() {
         body: JSON.stringify(uniqueOwnerRepoArrays),
       }
     );
-    console.log("Upload to DB: Success");
   };
-  const GetToTierOneSBOMS = async () => {
-    // Get Kubernetes SBOM
-    const owner: string = "kubernetes";
-    const repo: string = "Kubernetes";
-    const sbom = await DownloadSBOMFromGithub(owner, repo);
-    // Filter Github Links
 
-    const packageNames = sbom.data.sbom.packages
-      ?.map((p: sbomPackage) => p.name!)
-      .sort();
-    const githubLinks: string[] = packageNames.filter((str: string) =>
-      str.startsWith("go:github.com")
-    );
-    const splitGithubLinks: string[][] = githubLinks.map((g: string) => {
-      return g.split("/").splice(1, 2);
-    });
-    const ownerRepo: string[] = splitGithubLinks.map((arr: string[]) =>
-      arr.join(",")
-    );
-    const uniqueOwnerRepo: string[] = Array.from(new Set(ownerRepo));
-    const uniqueOwnerRepoArrays: string[][] = uniqueOwnerRepo.map(
-      (g: string) => {
-        return g.split(",");
-      }
-    );
-    console.log("uniqueArrayLen: ", uniqueOwnerRepoArrays.length);
+  const GetToTierOneSBOMS = async () => {
+    const sbom = await DownloadSBOMFromGithub("kubernetes", "Kubernetes");
+    const qniquePackageNames = FilterSbom(sbom);
     for (let i = 0; i < 270; i++) {
       try {
         const sbom = await DownloadSBOMFromGithub(
-          uniqueOwnerRepoArrays[i][0],
-          uniqueOwnerRepoArrays[i][1]
+          qniquePackageNames[i][0],
+          qniquePackageNames[i][1]
         );
-        await UploadSBOMToMongoDB(sbom.data.sbom);
+        await UploadSBOMToMongoDB(sbom);
         console.log("Upload To MongoDB: Success");
       } catch (error) {
         console.error("Error fetching data:", error);

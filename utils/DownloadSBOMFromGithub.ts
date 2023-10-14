@@ -2,10 +2,7 @@ import getConfig from "next/config";
 
 const { publicRuntimeConfig } = getConfig();
 
-const DownloadSBOMQueryResultFromGithub = async (
-  owner: String,
-  repo: String
-) => {
+const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
   try {
     const dataObject = {
       owner: owner,
@@ -19,10 +16,11 @@ const DownloadSBOMQueryResultFromGithub = async (
       body: JSON.stringify(dataObject),
     });
     const dataSBOM = await resSBOM.json();
-    return dataSBOM;
+    const sbom = dataSBOM.data.sbom;
+    return sbom;
   } catch (error) {
     console.error("Error fetching data:", error);
   }
 };
 
-export default DownloadSBOMQueryResultFromGithub;
+export default DownloadSBOMFromGithub;
