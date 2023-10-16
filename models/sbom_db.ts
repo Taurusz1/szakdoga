@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import SBOMPackageModel from "./package_db";
 
 const creationInfoSchema = new Schema({
   created: { type: String, required: true },
@@ -7,6 +6,7 @@ const creationInfoSchema = new Schema({
 });
 
 const sbomPackageSchema = new Schema({
+  parentSBOMName: { type: [String], required: false },
   SPDXID: { type: String },
   name: { type: String },
   versionInfo: { type: String },
@@ -18,6 +18,7 @@ const sbomPackageSchema = new Schema({
 
 const sbomSchema = new Schema(
   {
+    parentSBOMName: [String],
     SPDXID: String,
     spdxVersion: String,
     creationInfo: creationInfoSchema,
@@ -27,7 +28,7 @@ const sbomSchema = new Schema(
     documentNamespace: String,
     packages: [sbomPackageSchema],
   },
-  { collection: "LayerOneSBOMS" }
+  { collection: "EverySBOMOnlyOnce" }
 );
 
 const SBOMModel = mongoose.models.SBOM || mongoose.model("SBOM", sbomSchema);

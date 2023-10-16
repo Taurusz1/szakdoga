@@ -1,6 +1,7 @@
 import sbomPackage from "./package";
 
 type sbom = {
+  parentSBOMName?: string[];
   SPDXID: string;
   spdxVersion: string;
   creationInfo: { created: string; creators: string[] };

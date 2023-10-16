@@ -10,11 +10,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "GET") {
     try {
       const sbomArray = await SBOMModel.find();
-
       if (!sbomArray) {
         return res.status(404).json({ error: "No SBOM found" });
       }
-      res.json(sbomArray);
+      const length = sbomArray.length;
+      res.json(length);
     } catch (error) {
       console.error("Error retrieving SBOM:", error);
       res.status(500).json({ error: "Internal Server Error" });

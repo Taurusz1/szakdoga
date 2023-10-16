@@ -1,86 +1,36 @@
 import Head from "next/head";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { useEffect, useState } from "react";
 import getConfig from "next/config";
-import sbomQueryResult from "@/models/sbomQueryResult";
 import sbom from "@/models/sbom";
-import sbomPackage from "@/models/package";
-import UploadSBOMToMongoDB from "@/utils/UploadSBOMToMongDB";
-import DownloadSBOMFromGithub from "@/utils/DownloadSBOMFromGithub";
-import FilterSbom from "@/utils/FilterSBOM";
+import { FilterSbom, FormatSBOMName } from "@/utils/Formating";
+import {
+  UploadSBOMToMongoDB,
+  DownloadSBOMsFromMongoDB,
+  GetLength,
+  DownloadSBOMFromMongoDB,
+} from "@/utils/mongoDBQueries";
+import { DownloadSBOMFromGithub } from "@/utils/github";
+import { FullDependencyTree } from "@/utils/FullDependencyTree";
+import { DependencyTreeOnlyUnique } from "@/utils/DependencyTreeOnylUnique";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const { publicRuntimeConfig } = getConfig();
-  const [result, setResult] = useState<sbomQueryResult>();
-  const [sbom, setSBOM] = useState<sbom>();
-  const [packageNames, setPackageNames] = useState<String[][]>([]);
-
-  useEffect(() => {}, [sbom]);
-
-  const DownloadKubernetesSBOMFromGithub = async () => {
-    const owner = "kubernetes";
-    const repo = "Kubernetes";
-    const sbom = await DownloadSBOMFromGithub(owner, repo);
-    setSBOM(sbom);
-  };
-  const UploadKubernetesSBOMToMongoDB = async () => {
-    await UploadSBOMToMongoDB(sbom!);
-  };
-
   const ResetPackages = async () => {
-    // Get Kubernetes SBOM
-    const owner: string = "kubernetes";
-    const repo: string = "Kubernetes";
-    const sbom = await DownloadSBOMFromGithub(owner, repo);
-
-    // Filter Github Links
-    const packageNames = sbom.packages?.map((p: sbomPackage) => p.name!).sort();
-    const githubLinks: string[] = packageNames.filter((str: string) =>
-      str.startsWith("go:github.com")
-    );
-    const splitGithubLinks: string[][] = githubLinks.map((g: string) => {
-      return g.split("/").splice(1, 2);
-    });
-    const ownerRepo: string[] = splitGithubLinks.map((arr: string[]) =>
-      arr.join(",")
-    );
-    const uniqueOwnerRepo: string[] = Array.from(new Set(ownerRepo));
-    const uniqueOwnerRepoArrays: string[][] = uniqueOwnerRepo.map(
-      (g: string) => {
-        return g.split(",");
-      }
-    );
-
-    const uploadresult = await fetch(
+    const sbom = await DownloadSBOMFromGithub("kubernetes", "Kubernetes");
+    const uniquePackageNames = FilterSbom(sbom);
+    const res = await fetch(
       publicRuntimeConfig.API_ENDPOINT + "/package/create",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(uniqueOwnerRepoArrays),
+        body: JSON.stringify(uniquePackageNames),
       }
     );
-  };
-
-  const GetToTierOneSBOMS = async () => {
-    const sbom = await DownloadSBOMFromGithub("kubernetes", "Kubernetes");
-    const qniquePackageNames = FilterSbom(sbom);
-    for (let i = 0; i < 270; i++) {
-      try {
-        const sbom = await DownloadSBOMFromGithub(
-          qniquePackageNames[i][0],
-          qniquePackageNames[i][1]
-        );
-        await UploadSBOMToMongoDB(sbom);
-        console.log("Upload To MongoDB: Success");
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
   };
 
   return (
@@ -92,9 +42,11 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        GetToTierOneSBOMS
-        <button onClick={ResetPackages}>ResetPackages </button>
-        <button onClick={GetToTierOneSBOMS}>TierOneSBOMs </button>
+        DownLoadDependencyTree
+        <button onClick={FullDependencyTree}>Full Dependency Tree </button>
+        <button onClick={DependencyTreeOnlyUnique}>
+          Dependency Tree Only Unique
+        </button>
       </main>
     </>
   );

@@ -18,7 +18,5 @@ export default async function handler(
     owner: "Taurusz1",
     repo: "Bom-to-CVE",
   });
-  console.log(data.data);
-
   res.status(200).json(data);
 }

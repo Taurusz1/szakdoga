@@ -2,19 +2,22 @@ import getConfig from "next/config";
 
 const { publicRuntimeConfig } = getConfig();
 
-const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
+export const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
   try {
     const dataObject = {
       owner: owner,
       repo: repo,
     };
-    const resSBOM = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataObject),
-    });
+    const resSBOM = await fetch(
+      publicRuntimeConfig.API_ENDPOINT + "/sbom/github",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataObject),
+      }
+    );
     const dataSBOM = await resSBOM.json();
     const sbom = dataSBOM.data.sbom;
     return sbom;
@@ -22,5 +25,3 @@ const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
     console.error("Error fetching data:", error);
   }
 };
-
-export default DownloadSBOMFromGithub;
