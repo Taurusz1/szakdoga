@@ -9,7 +9,7 @@ import {
 
 const packageNames: string[][] = [];
 
-export const DependencyTreeOnlyUnique = async () => {
+export const OnlyUniqueDependencyTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
     "kubernetes",
     "Kubernetes"

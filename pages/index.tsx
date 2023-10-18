@@ -12,7 +12,8 @@ import {
 } from "@/utils/mongoDBQueries";
 import { DownloadSBOMFromGithub } from "@/utils/github";
 import { FullDependencyTree } from "@/utils/FullDependencyTree";
-import { DependencyTreeOnlyUnique } from "@/utils/DependencyTreeOnylUnique";
+import { OnlyUniqueDependencyTree } from "@/utils/OnylUniqueDependencyTree";
+import { StubbyDependencyTree } from "@/utils/DependencyTreeStubyPackages";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,11 +43,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        DownLoadDependencyTree
+        Full Dependency Tree
         <button onClick={FullDependencyTree}>Full Dependency Tree </button>
-        <button onClick={DependencyTreeOnlyUnique}>
-          Dependency Tree Only Unique
+        <button onClick={OnlyUniqueDependencyTree}>
+          Only Unique Dependency Tree
         </button>
+        <button onClick={StubbyDependencyTree}>Stubby Dependency Tree</button>
       </main>
     </>
   );
