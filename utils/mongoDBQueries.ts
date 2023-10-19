@@ -4,10 +4,6 @@ import sbom from "@/models/sbom";
 const { publicRuntimeConfig } = getConfig();
 
 export const UploadSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
-  //if (sbom.packages.length > 1000) {
-  //  console.log("SBOM size exceeds 1Mb, upload is not possible");
-  //  return;
-  //}
   sbom.parentSBOMName = parent;
   const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom/create", {
     method: "POST",

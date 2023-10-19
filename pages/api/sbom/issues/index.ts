@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
 import getConfig from "next/config";
-import sbomQueryResult from "@/models/sbomQueryResult";
+import connectDB from "@/utils/db";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -14,9 +14,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const data = await octokit.rest.securityAdvisories.listRepositoryAdvisories({
-    owner: "Taurusz1",
-    repo: "Bom-to-CVE",
-  });
-  res.status(200).json(data);
+  await connectDB();
+  if (req.method === "POST") {
+    const data = await octokit.rest.securityAdvisories.listRepositoryAdvisories(
+      {
+        owner: req.body[0],
+        repo: req.body[1],
+      }
+    );
+    res.status(200).json(data);
+  }
 }

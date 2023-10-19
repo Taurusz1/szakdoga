@@ -25,3 +25,15 @@ export const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
     console.error("Error fetching data:", error);
   }
 };
+
+export const DownloadVulnFromGithub = async (repoData: string[]) => {
+  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom/issues", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(repoData),
+  });
+  const data = await res.json();
+  return data;
+};

@@ -4,16 +4,17 @@ import styles from "@/styles/Home.module.css";
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FilterSbom, FormatSBOMName } from "@/utils/Formating";
-import {
-  UploadSBOMToMongoDB,
-  DownloadSBOMsFromMongoDB,
-  GetLength,
-  DownloadSBOMFromMongoDB,
-} from "@/utils/mongoDBQueries";
-import { DownloadSBOMFromGithub } from "@/utils/github";
+import { DownloadSBOMsFromMongoDB } from "@/utils/mongoDBQueries";
+import { DownloadSBOMFromGithub, DownloadVulnFromGithub } from "@/utils/github";
+
+import { StubbyDependencyTree } from "@/utils/DependencyTreeStubyPackages";
 import { FullDependencyTree } from "@/utils/FullDependencyTree";
 import { OnlyUniqueDependencyTree } from "@/utils/OnylUniqueDependencyTree";
-import { StubbyDependencyTree } from "@/utils/DependencyTreeStubyPackages";
+import {
+  FullCSV,
+  SBOMSWithPackageNameCSV,
+  SBOMSWithoutPackageNameCSV,
+} from "@/utils/csv";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,17 @@ export default function Home() {
     );
   };
 
+  const asd = async () => {
+    const sboms: sbom[] = await DownloadSBOMsFromMongoDB();
+    for (let i = 0; i < sboms.length; i++) {
+      const formattedName = FormatSBOMName(sboms[i].name);
+      const res = await DownloadVulnFromGithub(formattedName);
+      if (res.data.length > 0) {
+        console.log(res);
+      }
+    }
+  };
+
   return (
     <>
       <Head>
@@ -43,12 +55,25 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        Full Dependency Tree
-        <button onClick={FullDependencyTree}>Full Dependency Tree </button>
-        <button onClick={OnlyUniqueDependencyTree}>
-          Only Unique Dependency Tree
-        </button>
-        <button onClick={StubbyDependencyTree}>Stubby Dependency Tree</button>
+        <div>
+          Full Dependency Tree
+          <button onClick={FullDependencyTree}>Full Dependency Tree </button>
+          <button onClick={OnlyUniqueDependencyTree}>
+            Only Unique Dependency Tree
+          </button>
+          <button onClick={StubbyDependencyTree}>Stubby Dependency Tree</button>
+          <button onClick={FullCSV}>
+            Download Every SBOM ONLY Once From DB
+          </button>
+          <button onClick={SBOMSWithPackageNameCSV}>
+            Download Every SBOM ONLY Once From DB Ligth version
+          </button>
+          <button onClick={SBOMSWithoutPackageNameCSV}>
+            Download Every SBOM ONLY Once From DB Ligth version Without
+            PackageNames
+          </button>
+        </div>
+        <button onClick={asd}>Issues</button>
       </main>
     </>
   );
