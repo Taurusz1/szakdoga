@@ -4,7 +4,10 @@ import styles from "@/styles/Home.module.css";
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FilterSbom, FormatSBOMName } from "@/utils/Formating";
-import { DownloadSBOMsFromMongoDB } from "@/utils/mongoDBQueries";
+import {
+  DownloadSBOMsFromMongoDB,
+  UploadVulnToMongoDB,
+} from "@/utils/mongoDBQueries";
 import { DownloadSBOMFromGithub, DownloadVulnFromGithub } from "@/utils/github";
 
 import { StubbyDependencyTree } from "@/utils/DependencyTreeStubyPackages";
@@ -15,11 +18,14 @@ import {
   SBOMSWithPackageNameCSV,
   SBOMSWithoutPackageNameCSV,
 } from "@/utils/csv";
+import SecurityAdvisory from "@/models/vuln";
+import { useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const { publicRuntimeConfig } = getConfig();
+  const [sboms, setSboms] = useState<sbom[]>();
   const ResetPackages = async () => {
     const sbom = await DownloadSBOMFromGithub("kubernetes", "Kubernetes");
     const uniquePackageNames = FilterSbom(sbom);
@@ -35,14 +41,31 @@ export default function Home() {
     );
   };
 
-  const asd = async () => {
+  async function asd1() {
     const sboms: sbom[] = await DownloadSBOMsFromMongoDB();
-    for (let i = 0; i < sboms.length; i++) {
-      const formattedName = FormatSBOMName(sboms[i].name);
-      const res = await DownloadVulnFromGithub(formattedName);
-      if (res.data.length > 0) {
-        console.log(res);
+    console.log("sboms set");
+    setSboms(sboms);
+  }
+  const asd = async () => {
+    for (let i = 0; i < sboms!.length; i++) {
+      const formattedName = FormatSBOMName(sboms![i].name);
+      const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(
+        formattedName
+      );
+      for (let i = 0; i < vulns.length; i++) {
+        await UploadVulnToMongoDB(vulns[i]);
       }
+    }
+  };
+
+  const asd2 = async () => {
+    const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub([
+      "as",
+      "asd",
+    ]);
+    console.log(vulns);
+    for (let i = 0; i < vulns.length; i++) {
+      await UploadVulnToMongoDB(vulns[i]);
     }
   };
 
@@ -73,7 +96,8 @@ export default function Home() {
             PackageNames
           </button>
         </div>
-        <button onClick={asd}>Issues</button>
+        <button onClick={asd1}>SBOMS</button>
+        <button onClick={asd}>IssuesTest</button>
       </main>
     </>
   );

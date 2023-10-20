@@ -1,5 +1,6 @@
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
+import SecurityAdvisory from "@/models/vuln";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -49,4 +50,17 @@ export const GetLength = async () => {
   );
   const data = await res.json();
   return data;
+};
+
+export const UploadVulnToMongoDB = async (vuln: SecurityAdvisory) => {
+  const res = await fetch(
+    publicRuntimeConfig.API_ENDPOINT + "/sbom/issues/create",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(vuln),
+    }
+  );
 };

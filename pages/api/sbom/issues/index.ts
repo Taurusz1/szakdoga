@@ -20,6 +20,8 @@ export default async function handler(
       {
         owner: req.body[0],
         repo: req.body[1],
+        //owner: "artifacthub",
+        //repo: "hub",
       }
     );
     res.status(200).json(data);

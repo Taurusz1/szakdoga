@@ -35,5 +35,5 @@ export const DownloadVulnFromGithub = async (repoData: string[]) => {
     body: JSON.stringify(repoData),
   });
   const data = await res.json();
-  return data;
+  return data.data;
 };
