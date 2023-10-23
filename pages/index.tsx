@@ -15,6 +15,7 @@ import { FullDependencyTree } from "@/utils/FullDependencyTree";
 import { OnlyUniqueDependencyTree } from "@/utils/OnylUniqueDependencyTree";
 import {
   FullCSV,
+  FullVulnCSV,
   SBOMSWithPackageNameCSV,
   SBOMSWithoutPackageNameCSV,
 } from "@/utils/csv";
@@ -58,17 +59,6 @@ export default function Home() {
     }
   };
 
-  const asd2 = async () => {
-    const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub([
-      "as",
-      "asd",
-    ]);
-    console.log(vulns);
-    for (let i = 0; i < vulns.length; i++) {
-      await UploadVulnToMongoDB(vulns[i]);
-    }
-  };
-
   return (
     <>
       <Head>
@@ -85,12 +75,7 @@ export default function Home() {
             Only Unique Dependency Tree
           </button>
           <button onClick={StubbyDependencyTree}>Stubby Dependency Tree</button>
-          <button onClick={FullCSV}>
-            Download Every SBOM ONLY Once From DB
-          </button>
-          <button onClick={SBOMSWithPackageNameCSV}>
-            Download Every SBOM ONLY Once From DB Ligth version
-          </button>
+          <button onClick={FullCSV}>Full CSV</button>
           <button onClick={SBOMSWithoutPackageNameCSV}>
             Download Every SBOM ONLY Once From DB Ligth version Without
             PackageNames
@@ -98,6 +83,8 @@ export default function Home() {
         </div>
         <button onClick={asd1}>SBOMS</button>
         <button onClick={asd}>IssuesTest</button>
+        <button onClick={SBOMSWithPackageNameCSV}>LightSBOM CSV</button>
+        <button onClick={FullVulnCSV}>Full Vuln CSV</button>
       </main>
     </>
   );

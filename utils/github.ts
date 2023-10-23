@@ -27,7 +27,7 @@ export const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
 };
 
 export const DownloadVulnFromGithub = async (repoData: string[]) => {
-  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom/issues", {
+  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/issue/github", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

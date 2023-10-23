@@ -53,14 +53,27 @@ export const GetLength = async () => {
 };
 
 export const UploadVulnToMongoDB = async (vuln: SecurityAdvisory) => {
-  const res = await fetch(
-    publicRuntimeConfig.API_ENDPOINT + "/sbom/issues/create",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(vuln),
+  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/issues/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(vuln),
+  });
+};
+
+export const GetVulns = async () => {
+  try {
+    const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/issue");
+
+    if (!res.ok) {
+      throw new Error(`Request failed with status: ${res.status}`);
     }
-  );
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error; // Rethrow the error to be handled by the calling function
+  }
 };
