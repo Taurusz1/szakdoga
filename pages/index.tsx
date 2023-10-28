@@ -42,11 +42,6 @@ export default function Home() {
     );
   };
 
-  async function asd1() {
-    const sboms: sbom[] = await DownloadSBOMsFromMongoDB();
-    console.log("sboms set");
-    setSboms(sboms);
-  }
   const asd = async () => {
     for (let i = 0; i < sboms!.length; i++) {
       const formattedName = FormatSBOMName(sboms![i].name);
@@ -81,9 +76,9 @@ export default function Home() {
             PackageNames
           </button>
         </div>
-        <button onClick={asd1}>SBOMS</button>
         <button onClick={asd}>IssuesTest</button>
         <button onClick={SBOMSWithPackageNameCSV}>LightSBOM CSV</button>
+        <button onClick={SBOMSWithoutPackageNameCSV}>LightSBOM CSV</button>
         <button onClick={FullVulnCSV}>Full Vuln CSV</button>
       </main>
     </>

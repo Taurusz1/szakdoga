@@ -28,7 +28,7 @@ const sbomSchema = new Schema(
     documentNamespace: String,
     packages: [sbomPackageSchema],
   },
-  { collection: "EverySBOMOnlyOnce" }
+  { collection: "StubySBOMS" }
 );
 
 const SBOMModel = mongoose.models.SBOM || mongoose.model("SBOM", sbomSchema);
