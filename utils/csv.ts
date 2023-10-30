@@ -15,18 +15,19 @@ export const SBOMSWithPackageNameCSV = async () => {
 
 export const SBOMSWithoutPackageNameCSV = async () => {
   const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
-  const LightSBOMArray: sbom[] = [];
-
-  for (let i = 0; i < sbomArray.length; i++) {
-    if (!isIncluded(sbomArray[i], LightSBOMArray)) {
-      LightSBOMArray.push(sbomArray[i]);
-    }
-  }
-  const sbomCount: { [key: string]: number } = {};
+  //find the original SBOM --- DONE
+  const OGSBOMS = FindOGSBOMs(sbomArray);
+  //count how many times an sbom is represented --- DONE
+  const dataSbomCount: { [key: string]: number } = {};
+  const overallSbomCount: { [key: string]: number } = {};
 
   sbomArray.forEach((sbom) => {
-    const sbomName = sbom.name; // Get the name property as the key
-    sbomCount[sbomName] = (sbomCount[sbomName] || 0) + 1;
+    const sbomName = sbom.name;
+    dataSbomCount[sbomName] = (dataSbomCount[sbomName] || 0) + 1;
+  });
+  OGSBOMS.forEach((sbom) => {
+    const instanceCount = dataSbomCount[sbom.name];
+    DFS(sbom, OGSBOMS, instanceCount, overallSbomCount);
   });
 
   const header = [
@@ -38,26 +39,58 @@ export const SBOMSWithoutPackageNameCSV = async () => {
     "instanceCount",
   ];
 
-  const data = LightSBOMArray.map((sbom) => [
+  const data = OGSBOMS.map((sbom) => [
     sbom.creationInfo.created,
     sbom.name,
     sbom.parentSBOMName?.join(";"),
     sbom.documentDescribes.join(";"),
     sbom.documentNamespace,
-    sbomCount[sbom.name],
+    overallSbomCount[sbom.name],
   ]);
 
   const csvData = [header, ...data];
   downloadCSV(csvData);
 };
 
-function isIncluded(newItem: sbom, smallList: sbom[]) {
-  for (let i = 0; i < smallList.length; i++) {
-    if (smallList[i].name == newItem.name) {
-      return true;
+function FindOGSBOMs(sbomArray: sbom[]) {
+  const OGSBOMSet = new Set();
+  const OGSBOMArray: sbom[] = [];
+  for (let i = 0; i < sbomArray.length; i++) {
+    if (!OGSBOMSet.has(sbomArray[i].name)) {
+      OGSBOMSet.add(sbomArray[i].name);
+      OGSBOMArray.push(sbomArray[i]);
     }
   }
-  return false;
+  return OGSBOMArray;
+}
+
+function DFS(
+  sbom: sbom,
+  searchArray: sbom[],
+  instanceCount: number,
+  overallSbomCount: { [key: string]: number }
+) {
+  //mark as visited => add the number specified to occurences
+  //Amennyiszer egy csomag megjelenik, annyit kell hozzáadni a leszármazottaihoz is
+
+  overallSbomCount[sbom.name] =
+    (overallSbomCount[sbom.name] || 0) + instanceCount;
+  //check if it has packanges
+  if (sbom.packages) {
+    //if it has packages go thru them
+    sbom.packages.forEach((sbomPackage, index) => {
+      if (index > 0) {
+        //find the sbom corresponding to the dependency name
+        searchArray.forEach((nextSbom) => {
+          console.log("nextSbom: ", nextSbom.name);
+          console.log("CurrentSBOM: ", sbomPackage.name);
+          if (nextSbom.name == sbomPackage.name) {
+            DFS(nextSbom, searchArray, instanceCount, overallSbomCount);
+          }
+        });
+      }
+    });
+  }
 }
 
 export const FullVulnCSV = async () => {

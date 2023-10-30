@@ -78,7 +78,9 @@ export default function Home() {
         </div>
         <button onClick={asd}>IssuesTest</button>
         <button onClick={SBOMSWithPackageNameCSV}>LightSBOM CSV</button>
-        <button onClick={SBOMSWithoutPackageNameCSV}>LightSBOM CSV</button>
+        <button onClick={SBOMSWithoutPackageNameCSV}>
+          SBOMSWithoutPackageNameCSV
+        </button>
         <button onClick={FullVulnCSV}>Full Vuln CSV</button>
       </main>
     </>
