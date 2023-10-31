@@ -2,6 +2,7 @@ import sbom from "@/models/sbom";
 import { DownloadSBOMsFromMongoDB, GetVulns } from "./mongoDBQueries";
 import * as Papa from "papaparse";
 import SecurityAdvisory from "@/models/vuln";
+import { FilterSbom, FormatSBOMName, FormatSBOMPackageName } from "./Formating";
 
 export const FullCSV = async () => {
   const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
@@ -82,10 +83,11 @@ function DFS(
       if (index > 0) {
         //find the sbom corresponding to the dependency name
         searchArray.forEach((nextSbom) => {
-          console.log("nextSbom: ", nextSbom.name);
-          console.log("CurrentSBOM: ", sbomPackage.name);
-          if (nextSbom.name == sbomPackage.name) {
-            DFS(nextSbom, searchArray, instanceCount, overallSbomCount);
+          const nextSbomName = FormatSBOMName(nextSbom.name);
+          const sbomName = FormatSBOMPackageName(sbomPackage.name!);
+          if (nextSbomName == sbomName) {
+            console.log("Match found for: ", sbomName);
+            //DFS(nextSbom, searchArray, instanceCount, overallSbomCount);
           }
         });
       }
