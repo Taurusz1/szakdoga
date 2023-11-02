@@ -6,11 +6,11 @@ import {
   GetLength,
   GetSBOMFromMongoDB,
 } from "../mongoDBQueries";
-import { isAlreadyDonwloaded } from "./StubySBOM";
+import { isAlreadyDonwloaded } from "./StubySBOMTree";
 
 const packageNames: string[][] = [];
 
-export const OnlyUniqueDependencyTree = async () => {
+export const UniqueSBOMTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
     "kubernetes",
     "Kubernetes"
@@ -26,7 +26,7 @@ export const OnlyUniqueDependencyTree = async () => {
       "SBOMArrayLength:",
       sbomArrayLenght
     );
-    await MainLoopEveryPackageOnlyOnce(startIndex);
+    await MainLoopUnique(startIndex);
     if (startIndex + 5 > sbomArrayLenght) {
       sbomArrayLenght = await GetLength();
     }
@@ -34,7 +34,7 @@ export const OnlyUniqueDependencyTree = async () => {
   }
 };
 
-const MainLoopEveryPackageOnlyOnce = async (startIndex: number) => {
+const MainLoopUnique = async (startIndex: number) => {
   const sbom = await GetSBOMFromMongoDB(startIndex);
   const parentName = FormatSBOMName(sbom.name);
   const uniquePackageNames = FilterSbom(sbom);

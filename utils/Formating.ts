@@ -33,3 +33,13 @@ export const FormatSBOMPackageName = (fullName: string) => {
   const components = [parts[1], parts[2]];
   return components;
 };
+
+export function FormatToSBOMName(importString: string) {
+  const parts = importString.split("/");
+  const owner = parts[1];
+  const repo = parts[2];
+  const com = parts[0].split(".")[1];
+  const github = parts[0].split(":")[1].split(".")[0];
+  const result = `${com}.${github}.${owner}/${repo}`;
+  return result;
+}

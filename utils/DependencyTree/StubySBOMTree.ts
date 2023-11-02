@@ -9,7 +9,7 @@ import {
 
 const packageNames: string[][] = [];
 
-export const StubbyDependencyTree = async () => {
+export const StubySBOMTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
     "kubernetes",
     "Kubernetes"

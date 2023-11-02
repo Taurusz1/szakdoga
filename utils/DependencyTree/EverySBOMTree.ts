@@ -7,7 +7,7 @@ import {
   GetSBOMFromMongoDB,
 } from "../mongoDBQueries";
 
-export const FullDependencyTree = async () => {
+export const EverySBOMTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
     "kubernetes",
     "Kubernetes"
@@ -22,7 +22,7 @@ export const FullDependencyTree = async () => {
       "SBOMArrayLength:",
       sbomArrayLenght
     );
-    await MainLoopFullSBOM(startIndex);
+    await MainLoopEvery(startIndex);
     if (startIndex + 5 > sbomArrayLenght) {
       sbomArrayLenght = await GetLength();
     }
@@ -30,7 +30,7 @@ export const FullDependencyTree = async () => {
   }
 };
 
-const MainLoopFullSBOM = async (startIndex: number) => {
+const MainLoopEvery = async (startIndex: number) => {
   const sbom = await GetSBOMFromMongoDB(startIndex);
   const parentName = FormatSBOMName(sbom.name);
   const uniquePackageNames = FilterSbom(sbom);
