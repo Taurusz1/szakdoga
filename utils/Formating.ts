@@ -29,11 +29,7 @@ export const FormatSBOMName = (fullName: string) => {
 };
 
 export const FormatSBOMPackageName = (fullName: string) => {
-  // Split the string by '/' to get the last part
   const parts = fullName.split("/");
-
-  // Split the last part by ':' to get the desired components
   const components = [parts[1], parts[2]];
-
   return components;
 };

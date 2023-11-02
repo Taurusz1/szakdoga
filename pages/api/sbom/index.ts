@@ -1,5 +1,5 @@
-import connectDB from "@/utils/db";
 import SBOMModel from "@/models/sbom_db";
+import { connectDB } from "@/utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const connect = async () => {

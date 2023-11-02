@@ -1,35 +1,46 @@
 import sbom from "@/models/sbom";
-import { DownloadSBOMsFromMongoDB, GetVulns } from "./mongoDBQueries";
+import {
+  DownloadSBOMFromMongoDB,
+  DownloadSBOMFromMongoDBByName,
+  DownloadSBOMsFromMongoDB,
+  GetVulns,
+} from "./mongoDBQueries";
 import * as Papa from "papaparse";
 import SecurityAdvisory from "@/models/vuln";
 import { FilterSbom, FormatSBOMName, FormatSBOMPackageName } from "./Formating";
-
-export const FullCSV = async () => {
-  const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
-  convertFullInstanceToCsv(sbomArray);
-};
+import { DownloadVulnFromGithub } from "./github";
 
 export const SBOMSWithPackageNameCSV = async () => {
   const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
-  convertLigthInstanceToCsv(sbomArray);
+  SBOMsToLightCsv(sbomArray);
 };
 
-export const SBOMSWithoutPackageNameCSV = async () => {
+export const SBOMSInstanceCountToCSV = async () => {
   const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
-  //find the original SBOM --- DONE
   const OGSBOMS = FindOGSBOMs(sbomArray);
-  //count how many times an sbom is represented --- DONE
   const dataSbomCount: { [key: string]: number } = {};
   const overallSbomCount: { [key: string]: number } = {};
+  let alreadyVisitedNodes: string[][] = [];
 
   sbomArray.forEach((sbom) => {
     const sbomName = sbom.name;
     dataSbomCount[sbomName] = (dataSbomCount[sbomName] || 0) + 1;
   });
-  OGSBOMS.forEach((sbom) => {
-    const instanceCount = dataSbomCount[sbom.name];
-    DFS(sbom, OGSBOMS, instanceCount, overallSbomCount);
-  });
+
+  for (let i = 0; i < OGSBOMS.length; i++) {
+    if (i > 0) {
+      console.log("DOING", OGSBOMS[i].name, "Index: ", i);
+      alreadyVisitedNodes = [];
+      const instanceCount = dataSbomCount[OGSBOMS[i].name];
+      DFS(
+        OGSBOMS[i],
+        OGSBOMS,
+        instanceCount,
+        overallSbomCount,
+        alreadyVisitedNodes
+      );
+    }
+  }
 
   const header = [
     "created",
@@ -69,79 +80,166 @@ function DFS(
   sbom: sbom,
   searchArray: sbom[],
   instanceCount: number,
-  overallSbomCount: { [key: string]: number }
+  overallSbomCount: { [key: string]: number },
+  alreadyVisitedNodes: string[][]
 ) {
-  //mark as visited => add the number specified to occurences
-  //Amennyiszer egy csomag megjelenik, annyit kell hozzáadni a leszármazottaihoz is
-
-  overallSbomCount[sbom.name] =
-    (overallSbomCount[sbom.name] || 0) + instanceCount;
-  //check if it has packanges
-  if (sbom.packages) {
-    //if it has packages go thru them
-    sbom.packages.forEach((sbomPackage, index) => {
-      if (index > 0) {
-        //find the sbom corresponding to the dependency name
-        searchArray.forEach((nextSbom) => {
-          const nextSbomName = FormatSBOMName(nextSbom.name);
-          const sbomName = FormatSBOMPackageName(sbomPackage.name!);
-          if (nextSbomName == sbomName) {
-            console.log("Match found for: ", sbomName);
-            //DFS(nextSbom, searchArray, instanceCount, overallSbomCount);
-          }
-        });
-      }
-    });
+  if (instanceCount <= 0) {
+    return;
   }
+  //Amennyiszer egy csomag megjelenik, annyit kell hozzáadni a leszármazottaihoz is
+  if (!isAlreadyVisited(sbom.name, alreadyVisitedNodes)) {
+    alreadyVisitedNodes.push(FormatSBOMName(sbom.name));
+    overallSbomCount[sbom.name] =
+      (overallSbomCount[sbom.name] || 0) + instanceCount;
+    if (sbom.packages) {
+      sbom.packages.forEach((sbomPackage, index) => {
+        if (index > 0) {
+          const sbomName = FormatSBOMPackageName(sbomPackage.name!);
+          //find the sbom corresponding to the dependency name
+          searchArray.forEach((nextSbom) => {
+            const nextSbomName = FormatSBOMName(nextSbom.name);
+            if (
+              nextSbomName[0] == sbomName[0] &&
+              nextSbomName[1] == sbomName[1]
+            ) {
+              DFS(
+                nextSbom,
+                searchArray,
+                instanceCount,
+                overallSbomCount,
+                alreadyVisitedNodes
+              );
+            }
+          });
+        }
+      });
+    }
+  } else {
+    overallSbomCount[sbom.name] = (overallSbomCount[sbom.name] || 0) + 1;
+  }
+}
+
+async function DFS2(
+  sbom: sbom,
+  instanceCount: number,
+  overallSbomCount: { [key: string]: number },
+  alreadyVisitedNodes: string[][]
+) {
+  if (instanceCount <= 0) {
+    return;
+  }
+  //Amennyiszer egy csomag megjelenik, annyit kell hozzáadni a leszármazottaihoz is
+  if (!isAlreadyVisited(sbom.name, alreadyVisitedNodes)) {
+    alreadyVisitedNodes.push(FormatSBOMName(sbom.name));
+
+    overallSbomCount[sbom.name] =
+      (overallSbomCount[sbom.name] || 0) + instanceCount;
+
+    if (sbom.packages) {
+      for (let i = 0; i < sbom.packages.length; i++) {
+        if (i > 0 && sbom.packages[i].name!.startsWith("go:github")) {
+          //find the sbom corresponding to the dependency name
+          const sbomName = FormatToSBOMName(sbom.packages[i].name!);
+          const nextSbom = await DownloadSBOMFromMongoDBByName(sbomName);
+          if (nextSbom) {
+            DFS2(
+              nextSbom,
+              instanceCount,
+              overallSbomCount,
+              alreadyVisitedNodes
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+async function DFS3(
+  sbom: sbom,
+  instanceCount: number,
+  overallSbomCount: { [key: string]: number },
+  alreadyVisitedNodes: string[][]
+) {
+  if (instanceCount <= 0) {
+    return;
+  }
+
+  if (!isAlreadyVisited(sbom.name, alreadyVisitedNodes)) {
+    const currentSBOMName = FormatSBOMName(sbom.name);
+    alreadyVisitedNodes.push(currentSBOMName);
+
+    overallSbomCount[sbom.name] =
+      (overallSbomCount[sbom.name] || 0) + instanceCount;
+
+    if (sbom.packages) {
+      const downloadPromises = [];
+
+      for (let i = 0; i < sbom.packages.length; i++) {
+        if (i > 0 && sbom.packages[i].name!.startsWith("go:github")) {
+          const sbomName = FormatToSBOMName(sbom.packages[i].name!);
+
+          // Check if the SBOM has already been downloaded
+          if (!alreadyVisitedNodes.includes(currentSBOMName)) {
+            downloadPromises.push(DownloadSBOMFromMongoDBByName(sbomName));
+          }
+        }
+      }
+
+      const downloadedSBOMs = await Promise.all(downloadPromises);
+
+      for (const nextSbom of downloadedSBOMs) {
+        if (nextSbom) {
+          await DFS3(
+            nextSbom,
+            instanceCount,
+            overallSbomCount,
+            alreadyVisitedNodes
+          );
+        }
+      }
+    }
+  }
+}
+
+const isAlreadyVisited = (sbomName: string, visited: string[][]) => {
+  const name = FormatSBOMName(sbomName);
+  for (let i = 0; i < visited.length; i++) {
+    if (name[0] === visited[i][0] && name[1] === visited[i][1]) {
+      return true;
+    }
+  }
+  return false;
+};
+
+function FormatToSBOMName(importString: string) {
+  const parts = importString.split("/");
+  const owner = parts[1];
+  const repo = parts[2];
+  const com = parts[0].split(".")[1];
+  const github = parts[0].split(":")[1].split(".")[0];
+  const result = `${com}.${github}.${owner}/${repo}`;
+  return result;
 }
 
 export const FullVulnCSV = async () => {
   const vulnArray: SecurityAdvisory[] = await GetVulns();
-  convertSecurityAdvisoryToCsv(vulnArray);
+  convertVulnsToCsv(vulnArray);
 };
 
-function convertFullInstanceToCsv(instances: sbom[]) {
-  const properties: (keyof sbom)[] = [
-    "SPDXID",
-    "spdxVersion",
-    "creationInfo",
-    "name",
-    "dataLicense",
-    "documentDescribes",
-    "documentNamespace",
-  ];
-  const csvData: string[][] = [];
-  instances.forEach((instance, instanceIndex) => {
-    const flatInstance: { [key: string]: any } = {};
-    properties.forEach((property) => {
-      if (property === "creationInfo") {
-        flatInstance["created"] = instance.creationInfo.created;
-        flatInstance["creators"] = instance.creationInfo.creators.join(";");
-      } else if (property === "documentDescribes") {
-        flatInstance["documentDescribes"] =
-          instance.documentDescribes.join(";");
-      } else {
-        flatInstance[property] = instance[property];
-      }
-    });
-    instance.packages.forEach((pkg, index) => {
-      const prefix = `package_${index + 1}_`;
-      flatInstance[`${prefix}name`] = pkg.name || "";
-      flatInstance[`${prefix}versionInfo`] = pkg.versionInfo || "";
-      flatInstance[`${prefix}downloadLocation`] = pkg.downloadLocation || "";
-      flatInstance[`${prefix}filesAnalyzed`] = pkg.filesAnalyzed ? "Yes" : "No";
-      flatInstance[`${prefix}supplier`] = pkg.supplier || "";
-    });
-    const rowData = Object.keys(flatInstance).map((key) => flatInstance[key]);
-    if (instanceIndex === 0) {
-      csvData.push(Object.keys(flatInstance));
-    }
-    csvData.push(rowData);
-  });
-  downloadCSV(csvData);
+export async function KubernetesTier1Vulns() {
+  const formattedName = ["kubernetes", "kubernetes"];
+  const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(formattedName);
+  convertVulnsToCsv(vulns);
 }
 
-function convertLigthInstanceToCsv(instances: sbom[]) {
+export async function KubernetesTier2Vulns() {
+  const formattedName = ["kubernetes", "kubernetes"];
+  const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(formattedName);
+  convertVulnsToCsv(vulns);
+}
+
+function SBOMsToLightCsv(instances: sbom[]) {
   const properties: (keyof sbom)[] = ["creationInfo", "name"];
   const csvData: string[][] = [];
   instances.forEach((instance, instanceIndex) => {
@@ -166,99 +264,7 @@ function convertLigthInstanceToCsv(instances: sbom[]) {
   downloadCSV(csvData);
 }
 
-function convertSecurityAdvisoryToCsvOld(instances: SecurityAdvisory[]) {
-  const properties: (keyof SecurityAdvisory)[] = [
-    "ghsa_id",
-    "cve_id",
-    //"url",
-    "html_url",
-    "summary",
-    "description",
-    "severity",
-    //"author",
-    "publisher",
-    "identifiers",
-    "state",
-    //"created_at",
-    "updated_at",
-    "published_at",
-    "closed_at",
-    "withdrawn_at",
-    "submission",
-    "cvss",
-    //"cwes",
-    "cwe_ids",
-    //"credits",
-    //"credits_detailed",
-    //"collaborating_users",
-    //"collaborating_teams",
-    //"private_fork",
-    "vulnerabilities",
-  ];
-  const csvData: string[][] = [];
-  instances.forEach((instance, instanceIndex) => {
-    const flatInstance: { [key: string]: any } = {};
-    properties.forEach((property) => {
-      if (property === "publisher") {
-        // Handle 'publisher' separately
-        if (instance.publisher) {
-          flatInstance["publisher_url"] = instance.publisher.html_url;
-          /*flatInstance["publisher_id"] = instance.publisher.id || "";
-          flatInstance["publisher_type"] = instance.publisher.type || "";
-          flatInstance["publisher_site_admin"] = instance.publisher.site_admin
-            ? "Yes"
-            : "No";*/
-        }
-      } else if (property === "identifiers") {
-        /* Handle 'identifiers' separately
-        instance.identifiers?.forEach((identifier, index) => {
-        flatInstance[`identifier_${index}_value`] = identifier.value || "";
-        flatInstance[`identifier_${index}_type`] = identifier.type || "";
-        });*/
-      } else if (property === "vulnerabilities") {
-        instance.vulnerabilities?.forEach((vulnerability, index) => {
-          flatInstance[`vulnerability_${index}_ecosystem`] =
-            vulnerability.package?.ecosystem || "";
-          flatInstance[`vulnerability_${index}_name`] =
-            vulnerability.package?.name || "";
-          flatInstance[`vulnerability_${index}_vulnerable_version_range`] =
-            vulnerability.vulnerable_version_range || "";
-          flatInstance[`vulnerability_${index}_patched_versions`] =
-            vulnerability.patched_versions || "";
-          //flatInstance[`vulnerability_${index}_vulnerable_functions`] =
-          //  vulnerability.vulnerable_functions!.join(";");
-        });
-      } else if (property === "cvss") {
-        flatInstance[`cvss_vector_string`] = instance.cvss?.vector_string || "";
-        flatInstance[`cvss_score`] = instance.cvss?.score || "";
-      } /*else if (property === "cwes") {
-      instance.cwes?.forEach((cwe, index) => {
-        flatInstance[`cwe_${index}_cwe_id`] = cwe.cwe_id || "";
-        flatInstance[`cwe_${index}_name`] = cwe.name || "";
-      });
-      } else if (property === "credits_detailed") {
-         Handle 'credits_detailed' separately
-        instance.credits_detailed?.forEach((creditDetail, index) => {
-          flatInstance[`creditDetail_${index}_login`] =
-            creditDetail.user?.login || "";
-          flatInstance[`creditDetail_${index}_type`] = creditDetail.type || "";
-          flatInstance[`creditDetail_${index}_state`] =
-            creditDetail.state || "";
-        });
-      } */ else {
-        flatInstance[property] = instance[property] || "";
-      }
-    });
-    const rowData = Object.keys(flatInstance).map((key) => flatInstance[key]);
-    if (instanceIndex === 0) {
-      csvData.push(Object.keys(flatInstance));
-    }
-    csvData.push(rowData);
-  });
-  downloadCSV(csvData);
-}
-
-function convertSecurityAdvisoryToCsv(instances: SecurityAdvisory[]) {
+function convertVulnsToCsv(instances: SecurityAdvisory[]) {
   const properties: (keyof SecurityAdvisory)[] = [
     "ghsa_id",
     "cve_id",
@@ -308,7 +314,7 @@ function convertSecurityAdvisoryToCsv(instances: SecurityAdvisory[]) {
   downloadCSV(csvData);
 }
 
-const downloadCSV = (csvData: any) => {
+export const downloadCSV = (csvData: any) => {
   const csv = Papa.unparse(csvData);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

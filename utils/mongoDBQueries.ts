@@ -5,7 +5,9 @@ import SecurityAdvisory from "@/models/vuln";
 const { publicRuntimeConfig } = getConfig();
 
 export const UploadSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
-  sbom.parentSBOMName = parent;
+  if (parent) {
+    sbom.parentSBOMName = parent;
+  }
   const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom/create", {
     method: "POST",
     headers: {
@@ -24,6 +26,21 @@ export const DownloadSBOMsFromMongoDB = async () => {
 export const DownloadSBOMFromMongoDB = async (id: number) => {
   const uploadresult = await fetch(
     publicRuntimeConfig.API_ENDPOINT + "/sbom/" + id
+  );
+  const data = await uploadresult.json();
+  return data;
+};
+
+export const DownloadSBOMFromMongoDBByName = async (name: string) => {
+  const uploadresult = await fetch(
+    publicRuntimeConfig.API_ENDPOINT + "/sbom/FindByName",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(name),
+    }
   );
   const data = await uploadresult.json();
   return data;

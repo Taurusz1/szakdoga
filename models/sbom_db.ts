@@ -16,9 +16,11 @@ const sbomPackageSchema = new Schema({
   externalRefs: { type: [Object] },
 });
 
-const sbomSchema = new Schema(
+export const sbomSchema = new Schema(
   {
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     parentSBOMName: [String],
+    instanceCount: Number,
     SPDXID: String,
     spdxVersion: String,
     creationInfo: creationInfoSchema,
@@ -28,7 +30,7 @@ const sbomSchema = new Schema(
     documentNamespace: String,
     packages: [sbomPackageSchema],
   },
-  { collection: "StubySBOMS" }
+  { collection: "EverySBOMOnlyOnce" }
 );
 
 const SBOMModel = mongoose.models.SBOM || mongoose.model("SBOM", sbomSchema);

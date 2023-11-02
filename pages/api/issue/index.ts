@@ -1,5 +1,5 @@
 import SecurityAdvisoryModel from "@/models/vuln_db";
-import connectDB from "@/utils/db";
+import { connectDB } from "@/utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const connect = async () => {

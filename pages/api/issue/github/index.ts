@@ -2,7 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
 import getConfig from "next/config";
-import connectDB from "@/utils/db";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -14,7 +13,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  await connectDB();
   if (req.method === "POST") {
     const data = await octokit.rest.securityAdvisories.listRepositoryAdvisories(
       {

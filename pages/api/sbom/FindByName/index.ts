@@ -1,6 +1,7 @@
-import SBOMModel from "@/models/sbom_db";
-import { connectDB } from "@/utils/db";
+import { sbomSchema } from "@/models/sbom_db";
 import { NextApiRequest, NextApiResponse } from "next";
+import mongoose from "mongoose";
+import { connectDB } from "@/utils/db";
 
 const connect = async () => {
   connectDB();
@@ -9,12 +10,16 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   await connect();
   if (req.method === "POST") {
     try {
-      const sbomArray = await SBOMModel.find();
-      if (!sbomArray) {
-        return res.status(404).json({ error: "No SBOM found" });
+      const name = req.body;
+      const SBOMModel = mongoose.model("EverySBOMOnlyOnce", sbomSchema);
+      const matchingSBOM = await SBOMModel.findOne({ name });
+
+      if (!matchingSBOM) {
+        return res.json(null);
       }
-      const index = sbomArray.findIndex((sbom) => sbom.name === req.body.name);
-      res.json(index);
+
+      // Send the matching SBOM as a response
+      res.json(matchingSBOM);
     } catch (error) {
       console.error("Error retrieving SBOM:", error);
       res.status(500).json({ error: "Internal Server Error" });

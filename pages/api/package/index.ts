@@ -1,7 +1,6 @@
-import connectDB from "@/utils/db";
 import PackageNamesArrayModel from "@/models/package_names_db";
 import { NextApiRequest, NextApiResponse } from "next";
-import packageNamesArray from "@/models/package_names";
+import { connectDB } from "@/utils/db";
 
 const connect = async () => {
   connectDB();

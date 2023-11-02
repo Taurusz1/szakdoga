@@ -1,5 +1,5 @@
 import SBOMModel from "@/models/sbom_db";
-import connectDB from "@/utils/db";
+import { connectToDatabase } from "@/utils/localDb";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export const config = {
@@ -11,7 +11,8 @@ export const config = {
 };
 
 const connect = async () => {
-  connectDB();
+  //connectDB();
+  await connectToDatabase();
 };
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {

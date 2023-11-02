@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import getConfig from "next/config";
 
-const connectDB = async () => {
+export const connectDB = async () => {
   const { publicRuntimeConfig } = getConfig();
   try {
     if (mongoose.connection.readyState !== 1) {
@@ -16,4 +16,15 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;
+export async function disconnectDB() {
+  try {
+    if (mongoose.connection.readyState == 1) {
+      await mongoose.disconnect();
+      console.log("MongoDB disconnected");
+    } else {
+      console.log("MongoDB is already disconnected");
+    }
+  } catch (err) {
+    console.error("MongoDB disconnection failed:", err);
+  }
+}
