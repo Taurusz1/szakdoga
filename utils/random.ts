@@ -1,9 +1,12 @@
 import sbom from "@/models/sbom";
 import { downloadCSV } from "./csv";
-import { DownloadSBOMsFromMongoDB } from "./mongoDBQueries";
+import { GetSBOMsFromMongoDB } from "./mongoDBQueries";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 export const FullCSV = async () => {
-  const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
+  const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
   convertFullInstanceToCsv(sbomArray);
 };
 
@@ -47,3 +50,22 @@ export function convertFullInstanceToCsv(instances: sbom[]) {
   });
   downloadCSV(csvData);
 }
+
+export const UploadPackageNamesToMongoDB = async (packageNames: string[][]) => {
+  const res = await fetch(
+    publicRuntimeConfig.API_ENDPOINT + "/package/create",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(packageNames),
+    }
+  );
+};
+
+export const DownloadPackageNamesFromMongoDB = async () => {
+  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/package");
+  const data = await res.json();
+  return data;
+};

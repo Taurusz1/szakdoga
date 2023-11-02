@@ -2,9 +2,9 @@ import sbom from "@/models/sbom";
 import { FormatSBOMName, FilterSbom } from "./Formating";
 import { DownloadSBOMFromGithub } from "./github";
 import {
-  UploadSBOMToMongoDB,
+  SetSBOMToMongoDB,
   GetLength,
-  DownloadSBOMFromMongoDB,
+  GetSBOMFromMongoDB,
 } from "./mongoDBQueries";
 
 const packageNames: string[][] = [];
@@ -14,7 +14,7 @@ export const OnlyUniqueDependencyTree = async () => {
     "kubernetes",
     "Kubernetes"
   );
-  await UploadSBOMToMongoDB(kubernetesSbom);
+  await SetSBOMToMongoDB(kubernetesSbom);
   packageNames.push(["kubernetes", "kubernetes"]);
   let startIndex = 0;
   let sbomArrayLenght = 1;
@@ -34,7 +34,7 @@ export const OnlyUniqueDependencyTree = async () => {
 };
 
 const MainLoopEveryPackageOnlyOnce = async (startIndex: number) => {
-  const sbom = await DownloadSBOMFromMongoDB(startIndex);
+  const sbom = await GetSBOMFromMongoDB(startIndex);
   const parentName = FormatSBOMName(sbom.name);
   const uniquePackageNames = FilterSbom(sbom);
   console.log(
@@ -51,7 +51,7 @@ const MainLoopEveryPackageOnlyOnce = async (startIndex: number) => {
             uniquePackageNames[i][0],
             uniquePackageNames[i][1]
           );
-          await UploadSBOMToMongoDB(newSbom, parentName);
+          await SetSBOMToMongoDB(newSbom, parentName);
           packageNames.push(uniquePackageNames[i]);
         } catch (error) {
           console.error("Error fetching data:", error);

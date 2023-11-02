@@ -4,7 +4,7 @@ import SecurityAdvisory from "@/models/vuln";
 
 const { publicRuntimeConfig } = getConfig();
 
-export const UploadSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
+export const SetSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
   if (parent) {
     sbom.parentSBOMName = parent;
   }
@@ -17,13 +17,13 @@ export const UploadSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
   });
 };
 
-export const DownloadSBOMsFromMongoDB = async () => {
+export const GetSBOMsFromMongoDB = async () => {
   const uploadresult = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom");
   const data = await uploadresult.json();
   return data;
 };
 
-export const DownloadSBOMFromMongoDB = async (id: number) => {
+export const GetSBOMFromMongoDB = async (id: number) => {
   const uploadresult = await fetch(
     publicRuntimeConfig.API_ENDPOINT + "/sbom/" + id
   );
@@ -31,7 +31,7 @@ export const DownloadSBOMFromMongoDB = async (id: number) => {
   return data;
 };
 
-export const DownloadSBOMFromMongoDBByName = async (name: string) => {
+export const GetSBOMFromMongoDBByName = async (name: string) => {
   const uploadresult = await fetch(
     publicRuntimeConfig.API_ENDPOINT + "/sbom/FindByName",
     {
@@ -69,7 +69,7 @@ export const GetLength = async () => {
   return data;
 };
 
-export const UploadVulnToMongoDB = async (vuln: SecurityAdvisory) => {
+export const SetVulnToMongoDB = async (vuln: SecurityAdvisory) => {
   const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/issues/create", {
     method: "POST",
     headers: {

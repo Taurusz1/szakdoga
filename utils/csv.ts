@@ -1,8 +1,8 @@
 import sbom from "@/models/sbom";
 import {
-  DownloadSBOMFromMongoDB,
-  DownloadSBOMFromMongoDBByName,
-  DownloadSBOMsFromMongoDB,
+  GetSBOMFromMongoDB,
+  GetSBOMFromMongoDBByName,
+  GetSBOMsFromMongoDB,
   GetVulns,
 } from "./mongoDBQueries";
 import * as Papa from "papaparse";
@@ -11,12 +11,12 @@ import { FilterSbom, FormatSBOMName, FormatSBOMPackageName } from "./Formating";
 import { DownloadVulnFromGithub } from "./github";
 
 export const SBOMSWithPackageNameCSV = async () => {
-  const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
+  const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
   SBOMsToLightCsv(sbomArray);
 };
 
 export const SBOMSInstanceCountToCSV = async () => {
-  const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
+  const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
   const OGSBOMS = FindOGSBOMs(sbomArray);
   const dataSbomCount: { [key: string]: number } = {};
   const overallSbomCount: { [key: string]: number } = {};
@@ -140,7 +140,7 @@ async function DFS2(
         if (i > 0 && sbom.packages[i].name!.startsWith("go:github")) {
           //find the sbom corresponding to the dependency name
           const sbomName = FormatToSBOMName(sbom.packages[i].name!);
-          const nextSbom = await DownloadSBOMFromMongoDBByName(sbomName);
+          const nextSbom = await GetSBOMFromMongoDBByName(sbomName);
           if (nextSbom) {
             DFS2(
               nextSbom,
@@ -181,7 +181,7 @@ async function DFS3(
 
           // Check if the SBOM has already been downloaded
           if (!alreadyVisitedNodes.includes(currentSBOMName)) {
-            downloadPromises.push(DownloadSBOMFromMongoDBByName(sbomName));
+            downloadPromises.push(GetSBOMFromMongoDBByName(sbomName));
           }
         }
       }

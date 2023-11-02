@@ -4,12 +4,7 @@ import styles from "@/styles/Home.module.css";
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FormatSBOMName } from "@/utils/Formating";
-import {
-  DownloadSBOMFromMongoDB,
-  DownloadSBOMsFromMongoDB,
-  UploadSBOMToMongoDB,
-  UploadVulnToMongoDB,
-} from "@/utils/mongoDBQueries";
+
 import {
   KubernetesTier1Vulns,
   SBOMSInstanceCountToCSV,
@@ -19,6 +14,11 @@ import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
 import { DownloadSBOMFromGithub, DownloadVulnFromGithub } from "@/utils/github";
 import { disconnectDB } from "@/utils/db";
+import {
+  GetSBOMFromMongoDB,
+  GetSBOMsFromMongoDB,
+  SetVulnToMongoDB,
+} from "@/utils/mongoDBQueries";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,13 +33,13 @@ export default function Home() {
         formattedName
       );
       for (let i = 0; i < vulns.length; i++) {
-        await UploadVulnToMongoDB(vulns[i]);
+        await SetVulnToMongoDB(vulns[i]);
       }
     }
   };
 
   async function asd() {
-    const sbomArray: sbom[] = await DownloadSBOMsFromMongoDB();
+    const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
     console.log(sbomArray);
     const numberArray = [
       1, 12, 18, 22, 22, 93, 59, 79, 88, 23, 20, 7, 5, 16, 99, 146, 48, 18, 21,
@@ -157,7 +157,7 @@ export default function Home() {
   }
 
   async function test() {
-    const sboms: sbom = await DownloadSBOMFromMongoDB(1);
+    const sboms: sbom = await GetSBOMFromMongoDB(1);
     console.log("stubySbomDownLoad Ready");
     await disconnectDB();
     //for (let i = 0; i < sboms.length; i++) {
