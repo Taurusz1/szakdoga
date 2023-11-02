@@ -9,14 +9,15 @@ import {
   KubernetesTier1Vulns,
   SBOMSInstanceCountToCSV,
   SBOMSWithPackageNameCSV,
-} from "@/utils/csv";
+} from "@/utils/csv/csv";
 import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
-import { DownloadSBOMFromGithub, DownloadVulnFromGithub } from "@/utils/github";
-import { disconnectDB } from "@/utils/db";
+import { DownloadVulnFromGithub } from "@/utils/github";
 import {
   GetSBOMFromMongoDB,
   GetSBOMsFromMongoDB,
+  SetSBOMToMongoDB,
+  UpdateSBOMToMongoDB,
   SetVulnToMongoDB,
 } from "@/utils/mongoDBQueries";
 
@@ -38,9 +39,8 @@ export default function Home() {
     }
   };
 
-  async function asd() {
+  async function InsertInstanceNumberIntoSBOM() {
     const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
-    console.log(sbomArray);
     const numberArray = [
       1, 12, 18, 22, 22, 93, 59, 79, 88, 23, 20, 7, 5, 16, 99, 146, 48, 18, 21,
       4, 13, 22, 20, 18, 1, 9, 5, 72, 22, 22, 22, 73, 22, 23, 22, 21, 22, 12,
@@ -152,17 +152,15 @@ export default function Home() {
     ];
     for (let i = 0; i < sbomArray.length; i++) {
       sbomArray[i].instanceCount = numberArray[i];
+      await UpdateSBOMToMongoDB(sbomArray[i]);
     }
-    console.log(sbomArray);
   }
 
-  async function test() {
-    const sboms: sbom = await GetSBOMFromMongoDB(1);
-    console.log("stubySbomDownLoad Ready");
-    await disconnectDB();
-    //for (let i = 0; i < sboms.length; i++) {
-    //  await UploadSBOMToMongoDB(sboms[i]);
-    //}
+  async function TransferSBOMList() {
+    const sboms: sbom[] = await GetSBOMsFromMongoDB();
+    for (let i = 0; i < sboms.length; i++) {
+      await SetSBOMToMongoDB(sboms[i]);
+    }
   }
 
   return (
@@ -178,8 +176,10 @@ export default function Home() {
         <button onClick={SBOMSInstanceCountToCSV}>
           SBOMSWithoutPackageNameCSV
         </button>
-        <button onClick={asd}>fix OG Sboms</button>
-        <button onClick={test}>Test</button>
+        <button onClick={InsertInstanceNumberIntoSBOM}>
+          Insert Instance Number IntoSBOM
+        </button>
+        <button onClick={TransferSBOMList}>Transfer SBOM List</button>
       </main>
     </>
   );

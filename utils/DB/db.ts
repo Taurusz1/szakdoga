@@ -16,15 +16,15 @@ export const connectDB = async () => {
   }
 };
 
-export async function disconnectDB() {
+export const disconnectDB = async () => {
   try {
-    if (mongoose.connection.readyState == 1) {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
       await mongoose.disconnect();
       console.log("MongoDB disconnected");
     } else {
-      console.log("MongoDB is already disconnected");
+      console.log("MongoDB is not connected");
     }
   } catch (err) {
-    console.error("MongoDB disconnection failed:", err);
+    console.error("Error disconnecting from MongoDB:", err);
   }
-}
+};

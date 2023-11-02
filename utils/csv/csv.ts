@@ -4,11 +4,15 @@ import {
   GetSBOMFromMongoDBByName,
   GetSBOMsFromMongoDB,
   GetVulns,
-} from "./mongoDBQueries";
+} from "../mongoDBQueries";
 import * as Papa from "papaparse";
 import SecurityAdvisory from "@/models/vuln";
-import { FilterSbom, FormatSBOMName, FormatSBOMPackageName } from "./Formating";
-import { DownloadVulnFromGithub } from "./github";
+import {
+  FilterSbom,
+  FormatSBOMName,
+  FormatSBOMPackageName,
+} from "../Formating";
+import { DownloadVulnFromGithub } from "../github";
 
 export const SBOMSWithPackageNameCSV = async () => {
   const sbomArray: sbom[] = await GetSBOMsFromMongoDB();

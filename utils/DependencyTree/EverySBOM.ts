@@ -1,11 +1,11 @@
 import sbom from "@/models/sbom";
-import { FormatSBOMName, FilterSbom } from "./Formating";
-import { DownloadSBOMFromGithub } from "./github";
+import { FormatSBOMName, FilterSbom } from "../Formating";
+import { DownloadSBOMFromGithub } from "../github";
 import {
-  GetSBOMFromMongoDB,
-  GetLength,
   SetSBOMToMongoDB,
-} from "./mongoDBQueries";
+  GetLength,
+  GetSBOMFromMongoDB,
+} from "../mongoDBQueries";
 
 export const FullDependencyTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
@@ -22,7 +22,7 @@ export const FullDependencyTree = async () => {
       "SBOMArrayLength:",
       sbomArrayLenght
     );
-    await MainLoop(startIndex);
+    await MainLoopFullSBOM(startIndex);
     if (startIndex + 5 > sbomArrayLenght) {
       sbomArrayLenght = await GetLength();
     }
@@ -30,7 +30,7 @@ export const FullDependencyTree = async () => {
   }
 };
 
-const MainLoop = async (startIndex: number) => {
+const MainLoopFullSBOM = async (startIndex: number) => {
   const sbom = await GetSBOMFromMongoDB(startIndex);
   const parentName = FormatSBOMName(sbom.name);
   const uniquePackageNames = FilterSbom(sbom);

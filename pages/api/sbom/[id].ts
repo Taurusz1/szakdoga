@@ -1,7 +1,6 @@
 import SBOMModel from "@/models/sbom_db";
 import { NextApiRequest, NextApiResponse } from "next";
-import sbomQueryResult from "@/models/sbomQueryResult";
-import { connectDB } from "@/utils/db";
+import { connectDB, disconnectDB } from "@/utils/DB/db";
 
 const connect = async () => {
   connectDB();

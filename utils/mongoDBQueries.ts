@@ -16,6 +16,15 @@ export const SetSBOMToMongoDB = async (sbom: sbom, parent?: string[]) => {
     body: JSON.stringify(sbom),
   });
 };
+export const UpdateSBOMToMongoDB = async (sbom: sbom) => {
+  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sbom),
+  });
+};
 
 export const GetSBOMsFromMongoDB = async () => {
   const uploadresult = await fetch(publicRuntimeConfig.API_ENDPOINT + "/sbom");

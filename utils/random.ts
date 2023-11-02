@@ -1,5 +1,5 @@
 import sbom from "@/models/sbom";
-import { downloadCSV } from "./csv";
+import { downloadCSV } from "./csv/csv";
 import { GetSBOMsFromMongoDB } from "./mongoDBQueries";
 import getConfig from "next/config";
 

@@ -1,7 +1,7 @@
 import { sbomSchema } from "@/models/sbom_db";
 import { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
-import { connectDB } from "@/utils/db";
+import { connectDB } from "@/utils/DB/db";
 
 const connect = async () => {
   connectDB();

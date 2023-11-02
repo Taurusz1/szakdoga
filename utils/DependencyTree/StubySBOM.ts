@@ -1,15 +1,15 @@
 import sbom from "@/models/sbom";
-import { FormatSBOMName, FilterSbom } from "./Formating";
-import { DownloadSBOMFromGithub } from "./github";
+import { FormatSBOMName, FilterSbom } from "../Formating";
+import { DownloadSBOMFromGithub } from "../github";
 import {
   SetSBOMToMongoDB,
   GetLength,
   GetSBOMFromMongoDB,
-} from "./mongoDBQueries";
+} from "../mongoDBQueries";
 
 const packageNames: string[][] = [];
 
-export const OnlyUniqueDependencyTree = async () => {
+export const StubbyDependencyTree = async () => {
   const kubernetesSbom: sbom = await DownloadSBOMFromGithub(
     "kubernetes",
     "Kubernetes"
@@ -25,7 +25,7 @@ export const OnlyUniqueDependencyTree = async () => {
       "SBOMArrayLength:",
       sbomArrayLenght
     );
-    await MainLoopEveryPackageOnlyOnce(startIndex);
+    await MainLoopStuby(startIndex);
     if (startIndex + 5 > sbomArrayLenght) {
       sbomArrayLenght = await GetLength();
     }
@@ -33,21 +33,15 @@ export const OnlyUniqueDependencyTree = async () => {
   }
 };
 
-const MainLoopEveryPackageOnlyOnce = async (startIndex: number) => {
+const MainLoopStuby = async (startIndex: number) => {
   const sbom = await GetSBOMFromMongoDB(startIndex);
   const parentName = FormatSBOMName(sbom.name);
   const uniquePackageNames = FilterSbom(sbom);
-  console.log(
-    "Number of Packages for:",
-    sbom.name,
-    ":",
-    uniquePackageNames?.length
-  );
   if (uniquePackageNames) {
     for (let i = 0; i < uniquePackageNames.length; i++) {
       if (!isAlreadyDonwloaded(uniquePackageNames[i])) {
         try {
-          const newSbom = await DownloadSBOMFromGithub(
+          const newSbom: sbom = await DownloadSBOMFromGithub(
             uniquePackageNames[i][0],
             uniquePackageNames[i][1]
           );
@@ -57,14 +51,24 @@ const MainLoopEveryPackageOnlyOnce = async (startIndex: number) => {
           console.error("Error fetching data:", error);
         }
       } else {
-        console.log("Package Already Downloaded");
+        try {
+          const newSbom: sbom = await DownloadSBOMFromGithub(
+            uniquePackageNames[i][0],
+            uniquePackageNames[i][1]
+          );
+          newSbom.packages = [];
+          await SetSBOMToMongoDB(newSbom, parentName);
+          packageNames.push(uniquePackageNames[i]);
+          console.log("Stubby SBOM", uniquePackageNames[i]);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
     }
-    console.log("SubSBOMS For ", sbom.name, " SBOM Downloaded");
   }
 };
 
-const isAlreadyDonwloaded = (newPackage: string[]) => {
+export const isAlreadyDonwloaded = (newPackage: string[]) => {
   for (let i = 0; i < packageNames.length; i++) {
     if (
       newPackage[0] === packageNames[i][0] &&
