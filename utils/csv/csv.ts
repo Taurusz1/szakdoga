@@ -1,17 +1,6 @@
 import sbom from "@/models/sbom";
-import {
-  GetSBOMFromMongoDB,
-  GetSBOMFromMongoDBByName,
-  GetSBOMsFromMongoDB,
-  GetVulns,
-} from "../mongoDBQueries";
-import SecurityAdvisory from "@/models/vuln";
-import {
-  FilterSbom,
-  FormatSBOMName,
-  FormatSBOMPackageName,
-} from "../Formating";
-import { DownloadVulnFromGithub } from "../github";
+import { GetSBOMsFromMongoDB } from "../mongoDBQueries";
+import { FormatSBOMName } from "../Formating";
 import { DFS } from "./DFS";
 import { downloadCSV } from "./DownloadCSV";
 
@@ -64,28 +53,6 @@ export const SBOMSInstanceCountToCSV = async () => {
   downloadCSV(csvData);
 };
 
-function FindOGSBOMs(sbomArray: sbom[]) {
-  const OGSBOMSet = new Set();
-  const OGSBOMArray: sbom[] = [];
-  for (let i = 0; i < sbomArray.length; i++) {
-    if (!OGSBOMSet.has(sbomArray[i].name)) {
-      OGSBOMSet.add(sbomArray[i].name);
-      OGSBOMArray.push(sbomArray[i]);
-    }
-  }
-  return OGSBOMArray;
-}
-
-export const isAlreadyVisited = (sbomName: string, visited: string[][]) => {
-  const name = FormatSBOMName(sbomName);
-  for (let i = 0; i < visited.length; i++) {
-    if (name[0] === visited[i][0] && name[1] === visited[i][1]) {
-      return true;
-    }
-  }
-  return false;
-};
-
 export async function SBOMsToLightCsv() {
   const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
   const properties: (keyof sbom)[] = ["creationInfo", "name"];
@@ -110,4 +77,26 @@ export async function SBOMsToLightCsv() {
     csvData.push(rowData);
   });
   downloadCSV(csvData);
+}
+
+export const isAlreadyVisited = (sbomName: string, visited: string[][]) => {
+  const name = FormatSBOMName(sbomName);
+  for (let i = 0; i < visited.length; i++) {
+    if (name[0] === visited[i][0] && name[1] === visited[i][1]) {
+      return true;
+    }
+  }
+  return false;
+};
+
+function FindOGSBOMs(sbomArray: sbom[]) {
+  const OGSBOMSet = new Set();
+  const OGSBOMArray: sbom[] = [];
+  for (let i = 0; i < sbomArray.length; i++) {
+    if (!OGSBOMSet.has(sbomArray[i].name)) {
+      OGSBOMSet.add(sbomArray[i].name);
+      OGSBOMArray.push(sbomArray[i]);
+    }
+  }
+  return OGSBOMArray;
 }

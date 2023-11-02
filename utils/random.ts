@@ -1,7 +1,7 @@
 import sbom from "@/models/sbom";
-import { downloadCSV } from "./csv/csv";
 import { GetSBOMsFromMongoDB } from "./mongoDBQueries";
 import getConfig from "next/config";
+import { downloadCSV } from "./csv/DownloadCSV";
 
 const { publicRuntimeConfig } = getConfig();
 

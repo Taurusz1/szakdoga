@@ -5,11 +5,7 @@ import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FormatSBOMName } from "@/utils/Formating";
 
-import {
-  KubernetesTier1Vulns,
-  SBOMSInstanceCountToCSV,
-  SBOMSWithPackageNameCSV,
-} from "@/utils/csv/csv";
+import { SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
 import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
 import { DownloadVulnFromGithub } from "@/utils/github";
@@ -172,7 +168,6 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <button onClick={SBOMSWithPackageNameCSV}>LightSBOM CSV</button>
         <button onClick={SBOMSInstanceCountToCSV}>
           SBOMSWithoutPackageNameCSV
         </button>

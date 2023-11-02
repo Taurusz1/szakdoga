@@ -12,7 +12,6 @@ export const config = {
 };
 
 const connect = async () => {
-  //connectDB();
   connectToDatabase();
 };
 
