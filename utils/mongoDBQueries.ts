@@ -55,6 +55,21 @@ export const GetSBOMFromMongoDBByName = async (name: string) => {
   return data;
 };
 
+export async function RemoveSBOMFromDB(sbom: sbom) {
+  const uploadresult = await fetch(
+    publicRuntimeConfig.API_ENDPOINT + "/sbom/remove",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sbom),
+    }
+  );
+  const data = await uploadresult.json();
+  return data;
+}
+
 export const FindIndex = async (sbom: sbom) => {
   const res = await fetch(
     publicRuntimeConfig.API_ENDPOINT + "/sbom/findIndex",

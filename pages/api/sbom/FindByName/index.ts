@@ -1,10 +1,10 @@
 import { sbomSchema } from "@/models/sbom_db";
 import { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
-import { connectDB } from "@/utils/DB/db";
+import { connectToDatabase } from "@/utils/DB/localDb";
 
 const connect = async () => {
-  connectDB();
+  connectToDatabase();
 };
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await connect();
@@ -18,7 +18,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         return res.json(null);
       }
 
-      // Send the matching SBOM as a response
       res.json(matchingSBOM);
     } catch (error) {
       console.error("Error retrieving SBOM:", error);

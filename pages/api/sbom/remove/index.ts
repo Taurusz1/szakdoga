@@ -21,9 +21,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const id: mongoose.Schema.Types.ObjectId = req.body._id!;
 
-      const sbom = await SBOMModel.findByIdAndUpdate(id, req.body);
+      const sbom = await SBOMModel.findByIdAndDelete(id);
 
-      res.json({ message: "SBOM updated successfully" });
+      res.json({ message: "SBOM deleted successfully" });
     } catch (error) {
       console.error("Error updating SBOM:", error);
       res.status(500).json({ error: "Internal Server Error" });

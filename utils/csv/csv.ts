@@ -1,30 +1,21 @@
 import sbom from "@/models/sbom";
 import { GetSBOMsFromMongoDB } from "../mongoDBQueries";
 import { FormatSBOMName } from "../Formating";
-import { DFS } from "./DFS";
+import { DFS2 } from "./DFS";
 import { downloadCSV } from "./DownloadCSV";
 
 export const SBOMSInstanceCountToCSV = async () => {
   const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
-  const OGSBOMS = FindOGSBOMs(sbomArray);
-  const dataSbomCount: { [key: string]: number } = {};
   const overallSbomCount: { [key: string]: number } = {};
   let alreadyVisitedNodes: string[][] = [];
 
-  sbomArray.forEach((sbom) => {
-    const sbomName = sbom.name;
-    dataSbomCount[sbomName] = (dataSbomCount[sbomName] || 0) + 1;
-  });
-
-  for (let i = 0; i < OGSBOMS.length; i++) {
-    if (i > 0) {
-      console.log("DOING", OGSBOMS[i].name, "Index: ", i);
+  for (let i = 0; i < sbomArray.length; i++) {
+    if (sbomArray[i].name != "com.github.kubernetes/kubernetes") {
+      console.log("DOING", sbomArray[i].name, "Index: ", i);
       alreadyVisitedNodes = [];
-      const instanceCount = dataSbomCount[OGSBOMS[i].name];
-      DFS(
-        OGSBOMS[i],
-        OGSBOMS,
-        instanceCount,
+      DFS2(
+        sbomArray[i],
+        sbomArray[i].instanceCount!,
         overallSbomCount,
         alreadyVisitedNodes
       );
@@ -40,7 +31,7 @@ export const SBOMSInstanceCountToCSV = async () => {
     "instanceCount",
   ];
 
-  const data = OGSBOMS.map((sbom) => [
+  const data = sbomArray.map((sbom) => [
     sbom.creationInfo.created,
     sbom.name,
     sbom.parentSBOMName?.join(";"),

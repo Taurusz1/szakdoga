@@ -5,7 +5,6 @@ import mongoose from "mongoose";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const connect = async () => {
-  //connectDB();
   connectToDatabase();
 };
 export default async (req: NextApiRequest, res: NextApiResponse) => {
@@ -17,7 +16,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       if (!sbomArray) {
         return res.status(404).json({ error: "No SBOM found" });
       }
-      disconnectDB();
       res.json(sbomArray);
     } catch (error) {
       console.error("Error retrieving SBOM:", error);

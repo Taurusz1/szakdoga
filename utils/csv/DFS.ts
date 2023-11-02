@@ -56,9 +56,6 @@ export async function DFS2(
   overallSbomCount: { [key: string]: number },
   alreadyVisitedNodes: string[][]
 ) {
-  if (instanceCount <= 0) {
-    return;
-  }
   //Amennyiszer egy csomag megjelenik, annyit kell hozzáadni a leszármazottaihoz is
   if (!isAlreadyVisited(sbom.name, alreadyVisitedNodes)) {
     alreadyVisitedNodes.push(FormatSBOMName(sbom.name));
@@ -67,8 +64,8 @@ export async function DFS2(
       (overallSbomCount[sbom.name] || 0) + instanceCount;
 
     if (sbom.packages) {
-      for (let i = 0; i < sbom.packages.length; i++) {
-        if (i > 0 && sbom.packages[i].name!.startsWith("go:github")) {
+      for (let i = 1; i < sbom.packages.length; i++) {
+        if (sbom.packages[i].name!.startsWith("go:github")) {
           //find the sbom corresponding to the dependency name
           const sbomName = FormatToSBOMName(sbom.packages[i].name!);
           const nextSbom = await GetSBOMFromMongoDBByName(sbomName);
@@ -80,53 +77,6 @@ export async function DFS2(
               alreadyVisitedNodes
             );
           }
-        }
-      }
-    }
-  }
-}
-
-export async function DFS3(
-  sbom: sbom,
-  instanceCount: number,
-  overallSbomCount: { [key: string]: number },
-  alreadyVisitedNodes: string[][]
-) {
-  if (instanceCount <= 0) {
-    return;
-  }
-
-  if (!isAlreadyVisited(sbom.name, alreadyVisitedNodes)) {
-    const currentSBOMName = FormatSBOMName(sbom.name);
-    alreadyVisitedNodes.push(currentSBOMName);
-
-    overallSbomCount[sbom.name] =
-      (overallSbomCount[sbom.name] || 0) + instanceCount;
-
-    if (sbom.packages) {
-      const downloadPromises = [];
-
-      for (let i = 0; i < sbom.packages.length; i++) {
-        if (i > 0 && sbom.packages[i].name!.startsWith("go:github")) {
-          const sbomName = FormatToSBOMName(sbom.packages[i].name!);
-
-          // Check if the SBOM has already been downloaded
-          if (!alreadyVisitedNodes.includes(currentSBOMName)) {
-            downloadPromises.push(GetSBOMFromMongoDBByName(sbomName));
-          }
-        }
-      }
-
-      const downloadedSBOMs = await Promise.all(downloadPromises);
-
-      for (const nextSbom of downloadedSBOMs) {
-        if (nextSbom) {
-          await DFS3(
-            nextSbom,
-            instanceCount,
-            overallSbomCount,
-            alreadyVisitedNodes
-          );
         }
       }
     }
