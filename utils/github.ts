@@ -27,13 +27,16 @@ export const DownloadSBOMFromGithub = async (owner: String, repo: String) => {
 };
 
 export const DownloadVulnFromGithub = async (repoData: string[]) => {
-  const res = await fetch(publicRuntimeConfig.API_ENDPOINT + "/issue/github", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(repoData),
-  });
+  const res = await fetch(
+    publicRuntimeConfig.API_ENDPOINT + "/issue/github/repo",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(repoData),
+    }
+  );
   const data = await res.json();
   return data.data;
 };

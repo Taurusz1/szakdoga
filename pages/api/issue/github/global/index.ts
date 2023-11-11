@@ -14,12 +14,13 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const data = await octokit.rest.securityAdvisories.listRepositoryAdvisories(
-      {
-        owner: req.body[0],
-        repo: req.body[1],
-      }
-    );
+    const data = await octokit.rest.securityAdvisories.listGlobalAdvisories({
+      mediaType: {
+        format: "raw",
+      },
+      owner: req.body[0],
+      repo: req.body[1],
+    });
     res.status(200).json(data);
   }
 }

@@ -4,18 +4,11 @@ import styles from "@/styles/Home.module.css";
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FormatSBOMName } from "@/utils/Formating";
-
-import { SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
+import { RealsesToCSV, SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
 import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
 import { DownloadVulnFromGithub } from "@/utils/github";
-import {
-  GetSBOMsFromMongoDB,
-  SetSBOMToMongoDB,
-  UpdateSBOMToMongoDB,
-  SetVulnToMongoDB,
-  RemoveSBOMFromDB,
-} from "@/utils/mongoDBQueries";
+import { SetVulnToMongoDB } from "@/utils/mongoDBQueries";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +28,21 @@ export default function Home() {
     }
   };
 
+  async function Test() {
+    const repoData = ["kubernetes", "kubernetes"];
+    const res = await fetch(
+      publicRuntimeConfig.API_ENDPOINT + "/issue/github/global",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(repoData),
+      }
+    );
+    const resData = await res.json();
+  }
+
   return (
     <>
       <Head>
@@ -47,9 +55,7 @@ export default function Home() {
         <button onClick={SBOMSInstanceCountToCSV}>
           SBOMSWithoutPackageNameCSV
         </button>
-        <button onClick={SBOMSInstanceCountToCSV}>
-          SBOMSWithoutPackageNameCSV
-        </button>
+        <button onClick={Test}>Test</button>
       </main>
     </>
   );

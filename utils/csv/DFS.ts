@@ -70,7 +70,7 @@ export async function DFS2(
           const sbomName = FormatToSBOMName(sbom.packages[i].name!);
           const nextSbom = await GetSBOMFromMongoDBByName(sbomName);
           if (nextSbom) {
-            DFS2(
+            await DFS2(
               nextSbom,
               instanceCount,
               overallSbomCount,
