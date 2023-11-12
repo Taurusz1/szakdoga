@@ -10,7 +10,7 @@ export const FullVulnCSV = async () => {
 
 export async function KubernetesTier1Vulns() {
   const formattedName = ["kubernetes", "kubernetes"];
-  const vulns: SecurityAdvisory[] = await GetGlobalVulns(formattedName);
+  const vulns = await GetGlobalVulns(formattedName);
   VulnsToCsv(vulns);
 }
 
@@ -21,6 +21,7 @@ export async function KubernetesTier2Vulns() {
 }
 
 function VulnsToCsv(instances: SecurityAdvisory[]) {
+  console.log(instances);
   const properties: (keyof SecurityAdvisory)[] = [
     "ghsa_id",
     "cve_id",

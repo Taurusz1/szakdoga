@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
 import getConfig from "next/config";
+import SecurityAdvisory from "@/models/vuln";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -14,13 +15,13 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const data = await octokit.rest.securityAdvisories.listGlobalAdvisories({
+    const ghsaIDs: string = req.body.ghsaID;
+    const result = await octokit.rest.securityAdvisories.listGlobalAdvisories({
       mediaType: {
         format: "raw",
       },
-      owner: req.body[0],
-      repo: req.body[1],
+      ghsa_id: ghsaIDs,
     });
-    res.status(200).json(data);
+    res.status(200).json(result);
   }
 }

@@ -8,7 +8,7 @@ import { SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
 import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
 import { SetVulnToMongoDB } from "@/utils/mongoDBQueries";
-import { GetRepoVulns } from "@/utils/github";
+import { GetGlobalVulns, GetRepoVulns } from "@/utils/github";
 import { KubernetesTier1Vulns } from "@/utils/csv/Vuln";
 import { RealsesToCSV } from "@/utils/csv/Release";
 
@@ -38,7 +38,6 @@ export default function Home() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <button onClick={KubernetesTier1Vulns}>Kubernetes Vulns</button>
-        <button onClick={RealsesToCSV}>Kubernetes Releases</button>
       </main>
     </>
   );
