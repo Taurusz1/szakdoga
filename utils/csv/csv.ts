@@ -3,9 +3,6 @@ import { GetSBOMsFromMongoDB } from "../mongoDBQueries";
 import { FormatSBOMName } from "../Formating";
 import { DFS2 } from "./DFS";
 import { downloadCSV } from "./DownloadCSV";
-import { GetReleases } from "../Releases/Releases";
-import { Release } from "@/models/release";
-import { ReadLine } from "readline";
 
 export const SBOMSInstanceCountToCSV = async () => {
   const sbomArray: sbom[] = await GetSBOMsFromMongoDB();
@@ -65,44 +62,6 @@ export async function SBOMsToLightCsv() {
     sbomArray.packages.forEach((pkg, index) => {
       const prefix = `package_${index + 1}_`;
       flatInstance[`${prefix}name`] = pkg.name || "";
-    });
-    const rowData = Object.keys(flatInstance).map((key) => flatInstance[key]);
-    if (instanceIndex === 0) {
-      csvData.push(Object.keys(flatInstance));
-    }
-    csvData.push(rowData);
-  });
-  downloadCSV(csvData);
-}
-
-export async function RealsesToCSV() {
-  const realses: Release[] = await GetReleases(["kubernetes", "kubernetes"]);
-
-  const properties: (keyof Release)[] = [
-    "html_url",
-    "id",
-    "node_id",
-    "tag_name",
-    "name",
-    "draft",
-    "prerelease",
-    "created_at",
-    "published_at",
-  ];
-
-  const csvData: string[][] = [];
-
-  realses.forEach((realse, instanceIndex) => {
-    const flatInstance: { [key: string]: any } = {};
-    properties.forEach((property) => {
-      if (
-        property === "author" ||
-        property === "reactions" ||
-        property === "assets"
-      ) {
-      } else {
-        flatInstance[property] = realse[property] || "";
-      }
     });
     const rowData = Object.keys(flatInstance).map((key) => flatInstance[key]);
     if (instanceIndex === 0) {

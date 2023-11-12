@@ -1,7 +1,7 @@
 import SecurityAdvisory from "@/models/vuln";
-import { DownloadVulnFromGithub } from "../github";
 import { GetVulns } from "../mongoDBQueries";
 import { downloadCSV } from "./DownloadCSV";
+import { GetGlobalVulns } from "../github";
 
 export const FullVulnCSV = async () => {
   const vulnArray: SecurityAdvisory[] = await GetVulns();
@@ -10,13 +10,13 @@ export const FullVulnCSV = async () => {
 
 export async function KubernetesTier1Vulns() {
   const formattedName = ["kubernetes", "kubernetes"];
-  const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(formattedName);
+  const vulns: SecurityAdvisory[] = await GetGlobalVulns(formattedName);
   VulnsToCsv(vulns);
 }
 
 export async function KubernetesTier2Vulns() {
   const formattedName = ["kubernetes", "kubernetes"];
-  const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(formattedName);
+  const vulns: SecurityAdvisory[] = await GetGlobalVulns(formattedName);
   VulnsToCsv(vulns);
 }
 

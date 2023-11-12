@@ -4,11 +4,13 @@ import styles from "@/styles/Home.module.css";
 import getConfig from "next/config";
 import sbom from "@/models/sbom";
 import { FormatSBOMName } from "@/utils/Formating";
-import { RealsesToCSV, SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
+import { SBOMSInstanceCountToCSV } from "@/utils/csv/csv";
 import SecurityAdvisory from "@/models/vuln";
 import { useState } from "react";
-import { DownloadVulnFromGithub } from "@/utils/github";
 import { SetVulnToMongoDB } from "@/utils/mongoDBQueries";
+import { GetRepoVulns } from "@/utils/github";
+import { KubernetesTier1Vulns } from "@/utils/csv/Vuln";
+import { RealsesToCSV } from "@/utils/csv/Release";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,29 +21,12 @@ export default function Home() {
   const VulnsFromGithubToMongoDB = async () => {
     for (let i = 0; i < sboms!.length; i++) {
       const formattedName = FormatSBOMName(sboms![i].name);
-      const vulns: SecurityAdvisory[] = await DownloadVulnFromGithub(
-        formattedName
-      );
+      const vulns: SecurityAdvisory[] = await GetRepoVulns(formattedName);
       for (let i = 0; i < vulns.length; i++) {
         await SetVulnToMongoDB(vulns[i]);
       }
     }
   };
-
-  async function Test() {
-    const repoData = ["kubernetes", "kubernetes"];
-    const res = await fetch(
-      publicRuntimeConfig.API_ENDPOINT + "/issue/github/global",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(repoData),
-      }
-    );
-    const resData = await res.json();
-  }
 
   return (
     <>
@@ -52,10 +37,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <button onClick={SBOMSInstanceCountToCSV}>
-          SBOMSWithoutPackageNameCSV
-        </button>
-        <button onClick={Test}>Test</button>
+        <button onClick={KubernetesTier1Vulns}>Kubernetes Vulns</button>
+        <button onClick={RealsesToCSV}>Kubernetes Releases</button>
       </main>
     </>
   );

@@ -18,6 +18,8 @@ export default async function handler(
     },
     owner: req.body.owner,
     repo: req.body.repo,
+    per_page: 100,
+    page: req.body.pageNum,
   });
   res.status(200).json(result.data);
 }
