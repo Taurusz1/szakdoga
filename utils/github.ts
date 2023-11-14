@@ -71,9 +71,49 @@ export async function GetGlobalVulns(repoData: string[]) {
     "GHSA-q3j5-32m5-58c2",
     "GHSA-58v3-j75h-xr49",
   ];
+  const ghsaIDsTier3 = [
+    "GHSA-7f33-f4f5-xwgw",
+    "GHSA-76wf-9vgp-pj7w",
+    "GHSA-f5pg-7wfw-84q9",
+    "GHSA-6jvc-q2x7-pchv",
+  ];
+  const ghsaIDsRunc = [
+    "GHSA-g2j6-57v7-gm8c",
+    "GHSA-m8cg-xc2p-r3fc",
+    "GHSA-vpvm-3wq2-2wvm",
+    "GHSA-f3fp-gc8g-vw66",
+    "GHSA-fgv8-vj5c-2ppq",
+    "GHSA-gp4j-w3vj-7299",
+    "GHSA-q3j5-32m5-58c2",
+    "GHSA-v95c-p5hm-xq8f",
+    "GHSA-fh74-hm69-rqjw",
+    "GHSA-c3xm-pvg7-gh7r",
+    "GHSA-g54h-m393-cpwq",
+  ];
+
+  const ghsaIDsMoby = [
+    "GHSA-vp35-85q5-9f25",
+    "GHSA-rc4r-wh2q-q6c4",
+    "GHSA-v4h8-794j-g8mm",
+    "GHSA-8fvr-5rqf-3wwh",
+  ];
+  const ghsaIDsContainerd = [
+    "GHSA-259w-8hf6-59c2",
+    "GHSA-hmfx-3pcx-653p",
+    "GHSA-2qjp-425j-52j9",
+    "GHSA-5ffw-gxpp-mxpf",
+    "GHSA-crp2-qrr5-8pq7",
+    "GHSA-742w-89gc-8m9c",
+    "GHSA-mvff-h3cj-wj9c",
+    "GHSA-5j5w-g665-5m35",
+    "GHSA-c2h3-6mxw-7mvq",
+    "GHSA-c72p-9xmj-rx3w",
+    "GHSA-36xw-fx78-c5r4",
+  ];
+  const ghsaIDsDistribution = [];
 
   const vulns = [];
-  for (let i = 0; i < ghsaIDsTier2.length; i++) {
+  for (let i = 0; i < ghsaIDsContainerd.length; i++) {
     const res = await fetch(
       publicRuntimeConfig.API_ENDPOINT + "/issue/github/global",
       {
@@ -81,7 +121,7 @@ export async function GetGlobalVulns(repoData: string[]) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ghsaID: ghsaIDsTier2[i] }),
+        body: JSON.stringify({ ghsaID: ghsaIDsContainerd[i] }),
       }
     );
     const resData = await res.json();
@@ -92,7 +132,7 @@ export async function GetGlobalVulns(repoData: string[]) {
 
 export async function GetReleases(name: string[]) {
   const releaseData: Release[] = [];
-  const pageNumber = 8;
+  const pageNumber = 5;
   for (let i = 0; i < pageNumber; i++) {
     const res = await fetch(
       publicRuntimeConfig.API_ENDPOINT + `/sbom/github/listReleases`,

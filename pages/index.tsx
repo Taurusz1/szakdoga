@@ -38,6 +38,7 @@ export default function Home() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <button onClick={KubernetesTier1Vulns}>Kubernetes Vulns</button>
+        <button onClick={RealsesToCSV}>Kubernetes Tier2 Releases</button>
       </main>
     </>
   );

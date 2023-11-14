@@ -3,7 +3,7 @@ import { GetReleases } from "../github";
 import { downloadCSV } from "./DownloadCSV";
 
 export async function RealsesToCSV() {
-  const realses: Release[] = await GetReleases(["kubernetes", "kubernetes"]);
+  const realses: Release[] = await GetReleases(["evanphx", "json-patch"]);
 
   const properties: (keyof Release)[] = [
     "html_url",
